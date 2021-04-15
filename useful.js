@@ -25,6 +25,7 @@ consoleMethods.forEach(function(name) {
     if (name === 'debug') {
       let sdiff = '';
 
+      // calculate time difference
       if (pre !== null) {
         const diff = now.diff(pre);
 
