@@ -18,9 +18,21 @@ consoleMethods.forEach(function(name) {
     const toLog = {};
     const now = dayjs();
     toLog.timestamp = now.format('YYYY-MM-DD HH:mm:ss.SSS');
-    toLog.timestamp = `[${toLog.timestamp}] `.grey;
+    toLog.timestamp = `[${toLog.timestamp}]`.grey;
     toLog.level = (name === 'error') ? '[ERROR]'.bgRed + ' ' : '';
     toLog.message = textify(arguments[0]);
+    toLog.callsite = '';
+
+    if (name === 'error' || arguments[0] instanceof Error)
+    {
+      toLog.callsite = '001';
+      if (arguments[0].stack) arguments[0] = arguments[0].stack;
+      const call = stack()[1];
+      if (call) {
+        const file = call.getFileName().replace(`${process.cwd()}/`, '');
+        toLog.callsite = ` (${file}:${call.getLineNumber()})`.grey;
+      }
+    }
 
     if (name === 'debug') {
       let sdiff = '';
@@ -42,7 +54,7 @@ consoleMethods.forEach(function(name) {
 
       if (typeof arguments[0] !== 'object') toLog.message = toLog.message.grey + sdiff;
     }
-    fn(toLog.timestamp + toLog.level + toLog.message);
+    fn(`${toLog.timestamp}${toLog.callsite} ${toLog.level}${toLog.message}`);
   }
 });
 
@@ -69,6 +81,18 @@ function isDate(date) {
 function set(opt) {
   if (opt && opt.debug !== undefined) debugmode = (opt.debug == true);
 }
+
+function stack() {
+  var orig = Error.prepareStackTrace;
+  Error.prepareStackTrace = function(_, stack){ return stack; };
+  var err = new Error;
+  Error.captureStackTrace(err, arguments.callee);
+  var stack = err.stack;
+  Error.prepareStackTrace = orig;
+  return stack;
+};
+
+
 
 function async_retry(n, wait, fn, ...args) {
   return new Promise((resolve, reject) => {

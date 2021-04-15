@@ -6,7 +6,8 @@ useful functions for every project
 overwritten .debug, .log, .warn & .error functions
 - added timestamp
 - added highlighting
-- added "+28ms" in debug mode
+- added "+28ms" time in debug mode
+- added line number for errors
 
 ```async_retry(n, wait, fn, ...args)```
 
