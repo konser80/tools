@@ -1,0 +1,23 @@
+{
+  "name": "useful",
+  "version": "1.0.1",
+  "description": "small useful functions",
+  "main": "useful.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "dayjs": "^1.10.4",
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/konser80/useful.git"
+  },
+  "author": "konser80",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/konser80/useful/issues"
+  },
+  "homepage": "https://github.com/konser80/useful#readme"
+}
