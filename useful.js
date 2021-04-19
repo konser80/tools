@@ -93,29 +93,5 @@ function stack() {
 };
 
 
-
-function async_retry(n, wait, fn, ...args) {
-  return new Promise((resolve, reject) => {
-    let attempts = 1;
-    function do_retry(n) {
-      return fn(args)
-      .then(resolve)
-      .catch(function (error) {
-        console.debug('error: ' + error.message);
-        if (n === 1) {
-          reject(error)
-        } else {
-          setTimeout(() => {
-            attempts += 1;
-            do_retry(n - 1);
-          }, wait * attempts);
-        }
-      });
-    }
-    return do_retry(n);
-  });
-}
-
 module.exports.isDate = isDate;
 module.exports.set = set;
-module.exports.async_retry = async_retry;

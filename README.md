@@ -8,7 +8,3 @@ overwritten .debug, .log, .warn & .error functions
 - added highlighting
 - added "+28ms" time in debug mode
 - added line number for errors
-
-```async_retry(n, wait, fn, ...args)```
-
-function can make few retries. useful for any connections
