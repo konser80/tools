@@ -57,7 +57,7 @@ consoleMethods.forEach(function(name) {
   }
 });
 
-module.exports.textify = function textify(obj, colors) {
+function textify(obj, colors) {
   let res = obj;
 
   if (obj === undefined) res = 'undefined';
@@ -93,3 +93,4 @@ function stack() {
 
 module.exports.isDate = isDate;
 module.exports.set = set;
+module.exports.textify = textify;
