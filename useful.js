@@ -7,7 +7,6 @@ var pre = null;
 
 console.log("\033[0m\n");
 
-
 const consoleMethods = ['debug', 'log', 'info', 'warn', 'error'];
 consoleMethods.forEach(function(name) {
   // debug is not a native method
@@ -20,7 +19,7 @@ consoleMethods.forEach(function(name) {
     toLog.timestamp = now.format('YYYY-MM-DD HH:mm:ss.SSS');
     toLog.timestamp = `[${toLog.timestamp}]`.grey;
     toLog.level = (name === 'error') ? '[ERROR]'.bgRed + ' ' : '';
-    toLog.message = textify(arguments[0]);
+    toLog.message = textify(arguments[0], true);
     toLog.callsite = '';
 
     if (name === 'error' || arguments[0] instanceof Error)
@@ -58,7 +57,7 @@ consoleMethods.forEach(function(name) {
   }
 });
 
-function textify(obj) {
+module.exports.textify = function textify(obj, colors) {
   let res = obj;
 
   if (obj === undefined) res = 'undefined';
@@ -68,7 +67,7 @@ function textify(obj) {
     res = new dayjs(obj).format('YYYY-MM-DD HH:mm:ss.SSS');
   }
   else if (typeof obj === 'object') {
-    res = util.inspect(obj, {colors: true, depth: null, showHidden: false});
+    res = util.inspect(obj, {colors: colors, depth: null, showHidden: false});
     if (!Array.isArray(obj)) res = '\n' + res;
   }
   return res;
@@ -91,7 +90,6 @@ function stack() {
   Error.prepareStackTrace = orig;
   return stack;
 };
-
 
 module.exports.isDate = isDate;
 module.exports.set = set;
