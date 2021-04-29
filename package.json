@@ -1,6 +1,6 @@
 {
   "name": "useful",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "small useful functions",
   "main": "useful.js",
   "scripts": {

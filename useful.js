@@ -51,7 +51,7 @@ consoleMethods.forEach(function(name) {
       }
       pre = now;
 
-      if (typeof arguments[0] !== 'object') toLog.message = toLog.message.grey + sdiff;
+      if (typeof arguments[0] !== 'object') toLog.message = toLog.message.toString().grey + sdiff;
     }
     fn(`${toLog.timestamp}${toLog.callsite} ${toLog.level}${toLog.message}`);
   }
