@@ -4,6 +4,7 @@ const util = require('util');
 
 var debugmode = true;
 var showtime = true;
+var showms = true;
 var pre = null;
 
 console.log("\033[0m\n");
@@ -35,7 +36,7 @@ consoleMethods.forEach(function(name) {
       }
     }
 
-    if (name === 'debug') {
+    if (name === 'debug' && showms) {
       let sdiff = '';
 
       // calculate time difference
@@ -82,6 +83,7 @@ function isDate(date) {
 function set(opt) {
   if (opt && opt.debug !== undefined) debugmode = (opt.debug == true);
   if (opt && opt.time !== undefined) showtime = (opt.debug == true);
+  if (opt && opt.ms !== undefined) showms = (opt.debug == true);
 }
 
 function stack() {
