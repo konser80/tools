@@ -36,11 +36,11 @@ consoleMethods.forEach(function(name) {
       }
     }
 
-    if (name === 'debug' && showms) {
+    if (name === 'debug') {
       let sdiff = '';
 
       // calculate time difference
-      if (pre !== null) {
+      if (showms & pre !== null) {
         const diff = now.diff(pre);
 
         if (diff < 1000) {
