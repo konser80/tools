@@ -3,6 +3,7 @@ global.colors = require('colors');
 const util = require('util');
 
 var debugmode = true;
+var showtime = true;
 var pre = null;
 
 console.log("\033[0m\n");
@@ -18,6 +19,7 @@ consoleMethods.forEach(function(name) {
     const now = dayjs();
     toLog.timestamp = now.format('YYYY-MM-DD HH:mm:ss.SSS');
     toLog.timestamp = `[${toLog.timestamp}]`.grey;
+    if (!showtime) toLog.timestamp = '';
     toLog.level = (name === 'error') ? '[ERROR]'.bgRed + ' ' : '';
     toLog.message = textify(arguments[0], true);
     toLog.callsite = '';
@@ -79,6 +81,7 @@ function isDate(date) {
 
 function set(opt) {
   if (opt && opt.debug !== undefined) debugmode = (opt.debug == true);
+  if (opt && opt.time !== undefined) showtime = (opt.debug == true);
 }
 
 function stack() {
