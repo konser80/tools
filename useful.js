@@ -18,7 +18,7 @@ consoleMethods.forEach(function(name) {
     const toLog = {};
     const now = dayjs();
     toLog.timestamp = now.format('YYYY-MM-DD HH:mm:ss.SSS');
-    toLog.timestamp = `[${toLog.timestamp}]`.grey;
+    toLog.timestamp = `[${toLog.timestamp}] `.grey;
     if (!showtime) toLog.timestamp = '';
     toLog.level = (name === 'error') ? '[ERROR]'.bgRed + ' ' : '';
     toLog.message = textify(arguments[0], true);
@@ -55,7 +55,7 @@ consoleMethods.forEach(function(name) {
 
       if (typeof arguments[0] !== 'object') toLog.message = toLog.message.toString().grey + sdiff;
     }
-    fn(`${toLog.timestamp}${toLog.callsite} ${toLog.level}${toLog.message}`);
+    fn(`${toLog.timestamp}${toLog.callsite}${toLog.level}${toLog.message}`);
   }
 });
 
