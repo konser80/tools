@@ -56,6 +56,12 @@ consoleMethods.forEach(function(name) {
 
       if (typeof arguments[0] !== 'object') toLog.message = toLog.message.toString().grey + sdiff;
     }
+
+    // if empty args - don't write anyting
+    if (arguments[0] == '' || arguments[0] == '\n') {
+      fn();
+      return;
+    }
     fn(`${toLog.timestamp}${toLog.callsite}${toLog.level}${toLog.message}`);
   }
 });
