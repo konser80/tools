@@ -16,3 +16,4 @@ key*.json
 # Other
 package-lock.json
 test*.*
+docs/

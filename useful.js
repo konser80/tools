@@ -7,7 +7,7 @@ var showtime = true;
 var showms = true;
 var pre = null;
 
-console.log("\033[0m\n");
+// console.log("\033[0m\n");
 
 const consoleMethods = ['debug', 'log', 'info', 'warn', 'error'];
 consoleMethods.forEach(function(name) {
