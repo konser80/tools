@@ -32,7 +32,7 @@ consoleMethods.forEach(function(name) {
       const call = stack()[1];
       if (call) {
         const file = call.getFileName().replace(`${process.cwd()}/`, '');
-        toLog.callsite = ` (${file}:${call.getLineNumber()})`.grey;
+        toLog.callsite = `(${file}:${call.getLineNumber()})`.grey;
       }
     }
 
