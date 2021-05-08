@@ -9,6 +9,8 @@ var pre = null;
 
 // console.log("\033[0m\n");
 
+
+// =============================================================
 const consoleMethods = ['debug', 'log', 'info', 'warn', 'error'];
 consoleMethods.forEach(function(name) {
   // debug is not a native method
@@ -66,6 +68,7 @@ consoleMethods.forEach(function(name) {
   }
 });
 
+// =============================================================
 function textify(obj, colors) {
   let res = obj;
 
@@ -82,16 +85,19 @@ function textify(obj, colors) {
   return res;
 }
 
+// =============================================================
 function isDate(date) {
   return date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
 }
 
+// =============================================================
 function set(opt) {
   if (opt && opt.debug !== undefined) debugmode = (opt.debug == true);
   if (opt && opt.time !== undefined) showtime = (opt.debug == true);
   if (opt && opt.ms !== undefined) showms = (opt.debug == true);
 }
 
+// =============================================================
 function stack() {
   var orig = Error.prepareStackTrace;
   Error.prepareStackTrace = function(_, stack){ return stack; };
@@ -102,6 +108,67 @@ function stack() {
   return stack;
 };
 
+
+// =============================================================
+function combine(_new_obj) {
+  let res = [];
+
+  let key = getFirstArrayKey(_new_obj);
+  if (!key) return [_new_obj];
+
+  // key is an array?
+  if (Array.isArray(_new_obj[key])) {
+    _new_obj[key].forEach((item, i) => {
+
+      // create copy of object
+      let obj = Object.assign({}, _new_obj);
+      obj[key] = item;
+
+      res = res.concat(combine(obj));
+      // return res;
+    });
+  }; // if array
+
+  // if pseudo-array
+  let o = _new_obj[key];
+  if (o.from !== undefined && o.to !== undefined) {
+
+    let _from = o.from;
+    if (typeof(_from) == 'string') _from = _new_obj[_from];
+    if (o.add) _from = _from + o.add;
+    if (o.mult) _from = _from * o.mult;
+
+    let _to = o.to;
+    if (typeof(_to) == 'string') _from = _new_obj[_to];
+    if (o.mult) _to = _to * o.mult;
+
+    let _step = o.step || 1;
+    if (typeof(_step) == 'string') _step = _new_obj[_step];
+    if (o.mult) _step = _step * o.mult;
+
+    for (let i = _from; i <= _to;  i+= _step || 1) {
+      // create copy of object
+      let obj = Object.assign({}, _new_obj);
+      obj[key] = Number(i.toFixed(8));
+      res = res.concat(combine(obj));
+    };
+  }; // pseudo array
+
+  return res;
+
+  function getFirstArrayKey(obj) {
+    for (let i=0; i < Object.keys(obj).length; i++) {
+      const key = Object.keys(obj)[i];
+      if (Array.isArray(obj[key])
+        || (obj[key].from !== undefined && obj[key].to !== undefined)) return key;
+      }
+    return false;
+  }
+} // fn
+
+
+
+module.exports.textify = textify;
+module.exports.combine = combine;
 module.exports.isDate = isDate;
 module.exports.set = set;
-module.exports.textify = textify;
