@@ -2,9 +2,6 @@ global.dayjs = require('dayjs');
 global.colors = require('colors');
 const util = require('util');
 
-var debugmode = true;
-var showtime = true;
-var showms = true;
 var pre = null;
 
 // console.log("\033[0m\n");
@@ -14,17 +11,21 @@ var pre = null;
 const consoleMethods = ['debug', 'log', 'info', 'warn', 'error'];
 consoleMethods.forEach(function(name) {
   // debug is not a native method
-  if (name === 'debug' && !debugmode) return;
   const fn = (name === 'debug') ? console.log : console[name];
 
   console[name] = function() {
     const toLog = {};
     const now = dayjs();
+
+    // show timestamp
     toLog.timestamp = now.format('YYYY-MM-DD HH:mm:ss.SSS');
     toLog.timestamp = `[${toLog.timestamp}] `.grey;
-    if (!showtime) toLog.timestamp = '';
+    // if (!showtime) toLog.timestamp = '';
+    if (arguments[1] && arguments[1].time === false) toLog.timestamp = '';
+
     toLog.level = (name === 'error') ? '[ERROR]'.bgRed + ' ' : '';
     toLog.message = textify(arguments[0], true);
+
     toLog.callsite = '';
 
     if (name === 'error' || arguments[0] instanceof Error)
@@ -38,11 +39,17 @@ consoleMethods.forEach(function(name) {
       }
     }
 
+    // console.debug can show time difference between calls
     if (name === 'debug') {
       let sdiff = '';
 
+      // fn(arguments[1]);
+      // if (arguments[1]) fn(arguments[1].ms);
+      // fn(pre);
+
       // calculate time difference
-      if (showms & pre !== null) {
+      if ((!arguments[1] || (arguments[1] && arguments[1].ms !== false)) && pre !== null) {
+      // if (showms & pre !== null) {
         const diff = now.diff(pre);
 
         if (diff < 1000) {
@@ -60,10 +67,11 @@ consoleMethods.forEach(function(name) {
     }
 
     // if empty args - don't write anyting
-    if (arguments[0] == '' || arguments[0] == '\n') {
-      fn();
-      return;
-    }
+    // if (typeof(arguments[0]) == 'string' && (arguments[0] == '' || arguments[0] == '\n')) {
+    //   toLog.timestamp = '';
+    //   // fn();
+    //   // return;
+    // }
     fn(`${toLog.timestamp}${toLog.callsite}${toLog.level}${toLog.message}`);
   }
 });
@@ -80,7 +88,7 @@ function textify(obj, colors) {
   }
   else if (typeof obj === 'object') {
     res = util.inspect(obj, {colors: colors, depth: null, showHidden: false});
-    if (!Array.isArray(obj)) res = '\n' + res;
+    if (res.indexOf('\n') !== -1) res = '\n' + res;
   }
   return res;
 }
@@ -88,13 +96,6 @@ function textify(obj, colors) {
 // =============================================================
 function isDate(date) {
   return date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
-}
-
-// =============================================================
-function set(opt) {
-  if (opt && opt.debug !== undefined) debugmode = (opt.debug == true);
-  if (opt && opt.time !== undefined) showtime = (opt.debug == true);
-  if (opt && opt.ms !== undefined) showms = (opt.debug == true);
 }
 
 // =============================================================
@@ -159,6 +160,8 @@ function combine(_new_obj) {
   function getFirstArrayKey(obj) {
     for (let i=0; i < Object.keys(obj).length; i++) {
       const key = Object.keys(obj)[i];
+      if (obj[key] === null) continue;
+
       if (Array.isArray(obj[key])
         || (obj[key].from !== undefined && obj[key].to !== undefined)) return key;
       }
@@ -171,4 +174,3 @@ function combine(_new_obj) {
 module.exports.textify = textify;
 module.exports.combine = combine;
 module.exports.isDate = isDate;
-module.exports.set = set;
