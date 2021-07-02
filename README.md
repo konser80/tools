@@ -1,6 +1,6 @@
-![useful](docs/console2.png)
+![tools](docs/console2.png)
 
-# useful
+# tools
 useful functions for every project
 
 ```console.debug()```

@@ -1,23 +1,28 @@
 {
-  "name": "useful",
-  "version": "1.2.0",
+  "name": "tools",
+  "version": "1.3.0",
   "description": "small useful functions",
-  "main": "useful.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "colors": "^1.4.0",
-    "dayjs": "^1.10.4"
+    "dayjs": "^1.10.4",
+    "lodash": "^4.17.21"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/konser80/useful.git"
+    "url": "git+https://github.com/konser80/tools.git"
   },
   "author": "konser80",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/konser80/useful/issues"
+    "url": "https://github.com/konser80/tools/issues"
   },
-  "homepage": "https://github.com/konser80/useful#readme"
+  "homepage": "https://github.com/konser80/tools#readme",
+  "devDependencies": {
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-plugin-import": "^2.23.2"
+  }
 }
