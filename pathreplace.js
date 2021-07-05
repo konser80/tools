@@ -2,6 +2,7 @@ const _ = require('lodash');
 
 // ==============================================
 function pathReplace(object, strPath, opt = { keep: false }) {
+  if (!strPath) return strPath;
   // opt:keep means keep notfound unchanged
 
   const na = 'undefinedString';
