@@ -44,7 +44,7 @@ function init() {
         let sdiff = '';
 
         // calculate time difference
-        if (!opt.ms && previous !== null) {
+        if (opt.ms && previous !== null) {
           const diff = now.diff(previous);
 
           if (diff < 1000) {
