@@ -13,7 +13,7 @@ function pathReplace(object, strPath, opt = { keep: false }) {
   if (!strPath.match(regex)) return strPath;
   // example: {/\d{3,}/msg.text}
 
-  const na = 'undefinedString';
+  const na = 'undefined';
   let res = strPath;
   let regexResult;
 
@@ -23,7 +23,9 @@ function pathReplace(object, strPath, opt = { keep: false }) {
     const objpath = regexResult[2];
 
     // get value
-    let replaceText = _.get(object, objpath, na).toString();
+    let replaceText = _.get(object, objpath, na);
+    if (replaceText === null) replaceText = 'null';
+    replaceText = replaceText.toString();
 
     // if we have sub-regex, apply it
     if (sregex) {

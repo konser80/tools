@@ -6,7 +6,7 @@ function val(x, def) {
   if (typeof x === 'string' && x.trim().toLowerCase() === 'true') res = true;
   if (typeof x === 'string' && x.trim().toLowerCase() === 'false') res = false;
   if (typeof x === 'string' && x.trim().toLowerCase() === 'null') res = null;
-  if (typeof x === 'string' && x.trim() === '') res = null;
+  // if (typeof x === 'string' && x.trim() === '') res = null;
 
   // is number?
   if (parseFloat(x).toString() === x) res = parseFloat(x);
