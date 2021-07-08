@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const dayjs = require('dayjs');
-const validator = require('validator');
+const validate = require('./validate');
 
 // ==============================================
 function pathReplace(object, strPath, opt = { keep: false }) {
@@ -25,7 +25,7 @@ function pathReplace(object, strPath, opt = { keep: false }) {
     // get value
     let replaceText = _.get(object, objpath, na);
     if (replaceText === null) replaceText = 'null';
-    replaceText = replaceText.toString();
+    replaceText = replaceText.toString().trim();
 
     // if we have sub-regex, apply it
     if (sregex) {
@@ -34,7 +34,7 @@ function pathReplace(object, strPath, opt = { keep: false }) {
       if (subResult && subResult[1]) replaceText = subResult[1];
     }
 
-    if (typeof replaceText === 'string' && validator.isISO8601(replaceText)) replaceText = dayjs(replaceText).format('YYYY-MM-DD HH:mm:ss');
+    if (typeof replaceText === 'string' && validate.isDateTime(replaceText)) replaceText = dayjs(replaceText).format('YYYY-MM-DD HH:mm:ss');
 
     if (replaceText !== na) res = res.replace(strfull, replaceText);
     if (replaceText === na && !opt.keep) res = res.replace(strfull, '');
