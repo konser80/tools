@@ -84,7 +84,7 @@ function textify(obj, colors) {
   }
   else if (typeof obj === 'object') {
     res = util.inspect(obj, { colors, depth: null, showHidden: false });
-    if (res.indexOf('\n') !== -1) res = `\n${res}`;
+    // if (res.indexOf('\n') !== -1) res = `\n${res}`;
   }
   return res;
 }
