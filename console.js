@@ -31,7 +31,7 @@ function init() {
       toLog.callsite = '';
       if (name === 'error' || data instanceof Error) {
         toLog.callsite = '001';
-        if (data.stack) data = data.stack;
+        if (data.stack) data = data.stack; // eslint-disable-line
         const call = getStack()[1];
         if (call) {
           const file = call.getFileName().replace(`${process.cwd()}/`, '');
@@ -63,6 +63,8 @@ function init() {
         if (typeof data !== 'object') toLog.message = toLog.message.toString().grey + sdiff;
       }
 
+      // add empty line for multi-line message
+      if (opt.time && toLog.message.indexOf('\n') !== -1) toLog.message = `\n${toLog.message}`;
       const result = `${toLog.timestamp}${toLog.callsite}${toLog.level}${toLog.message}`;
       origFunction(result);
     }
