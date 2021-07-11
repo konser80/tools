@@ -10,7 +10,10 @@ const REG_MINI = /\{(\/.*?\/)?(\w+\.\w.*?)\}/gi;
 // this {? button {/do_(.+)/btn.text} action} is great
 
 // ==============================================
-function objectReplace(obj, string, opt = { keep: false }) {
+function objectReplace(obj, string, opt = { str: true }) {
+  // str.true: null = 'null'
+  // str.false: null = ''
+
   if (!string) return string;
   if (typeof string !== 'string') return string;
 
@@ -43,18 +46,12 @@ function objectReplace(obj, string, opt = { keep: false }) {
     else {
       // apply replace
       newline = subres;
-      // newline = newline.replace(reg[1], subres);
       out = out.replace(reg[0], newline);
-      // console.debug(`[+] pre-out1 "${out}"`);
     }
   }
 
-  // console.debug(`[+] pre-out2 "${out}"`);
   // and now - simple pathReplace
   [out] = pathReplace(obj, out, opt); // first element is a string
-  // console.debug(`[+] pre-out3 "${out}"`);
-  // out =
-  // double lines & spaces
   out = out.replace(/ +/g, ' ');
   out = out.replace(/\n{3,}/gm, '\n\n');
 
@@ -62,22 +59,16 @@ function objectReplace(obj, string, opt = { keep: false }) {
 }
 
 // ==============================================
-function pathReplace(object, strPath) {
+function pathReplace(object, strPath, opt) {
 
-  // const regex = /{(.+?)}/gi;
   if (!strPath.match(REG_MINI)) return [strPath, false];
   // example: {/\d{3,}/msg.text}
 
-  // console.debug(`[·] pathReplace: ${strPath}`);
-
-  // const na = '';
   let res = strPath;
   let regexResult;
   let found = false;
 
   while ((regexResult = REG_MINI.exec(strPath)) !== null) {
-    // console.debug('[·] regexResult:');
-    // console.debug(regexResult);
 
     const strfull = regexResult[0];
     const sregex = regexResult[1];
@@ -85,12 +76,11 @@ function pathReplace(object, strPath) {
 
     // get value
     let replaceText = _.get(object, objpath, '');
-    // console.debug(`[+] got: ${replaceText}`);
-    if (replaceText === null) replaceText = 'null';
-    replaceText = replaceText.toString().trim();
+    if (opt.str && replaceText === null) replaceText = 'null';
+    // replaceText = replaceText.toString().trim();
 
     // if we have sub-regex, apply it
-    if (sregex) {
+    if (typeof replaceText === 'string' && sregex) {
       const subRegex = new RegExp(sregex.slice(1, -1));
       const subResult = replaceText.match(subRegex);
       if (subResult && subResult[1]) replaceText = subResult[1];
@@ -98,11 +88,8 @@ function pathReplace(object, strPath) {
 
     if (validate.isDateTime(replaceText)) replaceText = dayjs(replaceText).format('YYYY-MM-DD HH:mm:ss');
 
-    if (replaceText !== '') found = true;
+    if (replaceText !== '' && replaceText !== null) found = true;
     res = res.replace(strfull, replaceText);
-
-    // if (replaceText !== na) res = res.replace(strfull, replaceText);
-    // if (replaceText === na && !opt.keep) res = res.replace(strfull, '');
   }
   return [res, found];
 }
