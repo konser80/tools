@@ -8,6 +8,7 @@ module.exports.combine = require('./combine');
 module.exports.replace = require('./pathreplace');
 module.exports.tftotime = require('./timeframes');
 
+module.exports.istime = validate.isTime;
 module.exports.isdate = validate.isDate;
 module.exports.isdatetime = validate.isDateTime;
 
