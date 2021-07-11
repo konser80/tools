@@ -10,7 +10,7 @@ const REG_MINI = /\{(\/.*?\/)?(\w+\.\w.*?)\}/gi;
 // this {? button {/do_(.+)/btn.text} action} is great
 
 // ==============================================
-function objectReplace(obj, string, opt = { str: true }) {
+function objectReplace(obj, string, _opt) {
   // str.true: null = 'null'
   // str.false: null = ''
 
@@ -19,6 +19,16 @@ function objectReplace(obj, string, opt = { str: true }) {
 
   let out = string;
   let reg;
+
+  const opt = { ...{
+    // str: false,
+    true: 'true',
+    false: 'false',
+    null: 'null',
+    undefined: '',
+    empty: ''
+  },
+  ..._opt };
 
   // smart replace
   while ((reg = REG_FULL.exec(string)) !== null) {
@@ -75,8 +85,13 @@ function pathReplace(object, strPath, opt) {
     const objpath = regexResult[2];
 
     // get value
-    let replaceText = _.get(object, objpath, '');
-    if (opt.str && replaceText === null) replaceText = 'null';
+    let replaceText = _.get(object, objpath);
+    if (replaceText === '') replaceText = opt.empty;
+    if (replaceText === null) replaceText = opt.null;
+    if (replaceText === true) replaceText = opt.true;
+    if (replaceText === false) replaceText = opt.false;
+    if (replaceText === undefined) replaceText = opt.undefined;
+    // if (opt.str && replaceText === null) replaceText = 'null';
     // replaceText = replaceText.toString().trim();
 
     // if we have sub-regex, apply it
