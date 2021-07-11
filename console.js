@@ -68,7 +68,7 @@ function init() {
       }
 
       // add empty line for multi-line message
-      if (opt.time && toLog.message.indexOf('\n') !== -1) toLog.message = `\n${toLog.message}`;
+      if (typeof toLog.message === 'string' && opt.time && toLog.message.indexOf('\n') !== -1) toLog.message = `\n${toLog.message}`;
       const result = `${toLog.timestamp}${toLog.callsite}${toLog.level}${toLog.message}`;
       origFunction(result);
     }
