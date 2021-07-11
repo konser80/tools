@@ -26,7 +26,11 @@ function init() {
       if (opt.time === false) toLog.timestamp = '';
 
       toLog.level = (name === 'error') ? `${'[ERROR]'.bgRed} ` : '';
-      toLog.message = textify(data, true);
+      toLog.message = textify(data, { colors: true });
+
+      // start with grey & replace all 'reset' to grey
+      if (name === 'debug') toLog.message = `\u001b[90m${toLog.message}`;
+      if (name === 'debug') toLog.message = toLog.message.replace(/\[39m/g, '[90m');
 
       toLog.callsite = '';
       if (name === 'error' || data instanceof Error) {
@@ -73,8 +77,14 @@ function init() {
 }
 
 // =============================================================
-function textify(obj, colors) {
+function textify(obj, _opt) {
   let res = obj;
+
+  let opt = {
+    colors: false,
+    crlf: true
+  };
+  opt = { ...opt, ..._opt };
 
   if (obj === undefined) res = 'undefined';
   if (obj === null) res = 'null';
@@ -83,7 +93,10 @@ function textify(obj, colors) {
     res = dayjs(obj).format('YYYY-MM-DD HH:mm:ss.SSS');
   }
   else if (typeof obj === 'object') {
-    res = util.inspect(obj, { colors, depth: null, showHidden: false });
+    res = util.inspect(obj, { colors: opt.colors, depth: null, showHidden: false });
+    if (opt.crlf === false) {
+      res = res.replace(/\n/g, ' ').replace(/ {2,}/g, ' ');
+    }
     // if (res.indexOf('\n') !== -1) res = `\n${res}`;
   }
   return res;
