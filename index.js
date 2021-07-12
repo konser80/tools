@@ -1,5 +1,6 @@
 const consolemodule = require('./console');
 const validate = require('./validate');
+require('./async');
 
 consolemodule.init();
 
