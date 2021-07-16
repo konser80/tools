@@ -2,7 +2,7 @@ const _ = require('lodash');
 const dayjs = require('dayjs');
 const validate = require('./validate');
 
-const REG_FULL = /\{\?.*?(\{(\/.*?\/)?\w+\.[a-z0-9_.[\]]*?}.*?)+}/gi;
+const REG_FULL = /\{\?.*?(\{(\/.*?\/)?\w+\.[a-z0-9_.[\]]*?}.*?)+}/gsi;
 const REG_MINI = /\{(\/.*?\/)?(\w+\.\w.*?)\}/gi;
 
 // example:
