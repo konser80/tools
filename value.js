@@ -1,3 +1,5 @@
+const validator = require('validator');
+
 // ==============================================
 function val(x, def) {
   let res = x;
@@ -9,7 +11,8 @@ function val(x, def) {
   // if (typeof x === 'string' && x.trim() === '') res = null;
 
   // is number?
-  if (parseFloat(x).toString() === x) res = parseFloat(x);
+  // if (parseFloat(x).toString() === x) res = parseFloat(x);
+  if (validator.isFloat(x)) res = parseFloat(x);
 
   if ((res === undefined || res === null) && def !== undefined) res = def;
   return res;
