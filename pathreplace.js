@@ -1,3 +1,5 @@
+const tools = require('./index');
+
 const _ = require('lodash');
 const dayjs = require('dayjs');
 const validate = require('./validate');
@@ -91,6 +93,7 @@ function pathReplace(object, strPath, opt) {
     if (replaceText === true) replaceText = opt.true;
     if (replaceText === false) replaceText = opt.false;
     if (replaceText === undefined) replaceText = opt.undefined;
+    if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
     // if (opt.str && replaceText === null) replaceText = 'null';
     // replaceText = replaceText.toString().trim();
 
