@@ -62,10 +62,11 @@ function init() {
           }
           sdiff = sdiff.green;
         }
-        previous = now;
+        // previous = now;
 
         if (typeof data !== 'object') toLog.message = toLog.message.toString().grey + sdiff;
       }
+      previous = now;
 
       // add empty line for multi-line message
       if (typeof toLog.message === 'string' && opt.time && toLog.message.indexOf('\n') !== -1) toLog.message = `\n${toLog.message}`;
