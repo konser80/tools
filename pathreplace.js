@@ -28,7 +28,8 @@ function objectReplace(obj, string, _opt) {
     false: 'false',
     null: 'null',
     undefined: '',
-    empty: ''
+    empty: '',
+    date: true,
   },
   ..._opt };
 
@@ -104,7 +105,7 @@ function pathReplace(object, strPath, opt) {
       if (subResult && subResult[1]) replaceText = subResult[1];
     }
 
-    if (validate.isDateTime(replaceText)) replaceText = dayjs(replaceText).format('YYYY-MM-DD HH:mm:ss');
+    if (validate.isDateTime(replaceText) && opt.date) replaceText = dayjs(replaceText).format('YYYY-MM-DD HH:mm:ss');
 
     if (replaceText !== '' && replaceText !== null) found = true;
     res = res.replace(strfull, replaceText);

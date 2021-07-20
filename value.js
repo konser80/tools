@@ -2,6 +2,7 @@ const validator = require('validator');
 
 // ==============================================
 function val(x, def) {
+  
   let res = x;
   if (typeof x === 'string') res = res.trim();
 
