@@ -15,7 +15,8 @@ function init() {
     console[name] = newConsole;
 
     // ==============================================
-    function newConsole(data, opt = { time: true, ms: true }) {
+    function newConsole(data, _opt) {
+      const opt = { ...{ time: true, ms: true }, ..._opt };
       const toLog = {};
       const now = dayjs();
 

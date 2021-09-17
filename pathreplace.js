@@ -1,8 +1,7 @@
-const tools = require('./index');
-
 const _ = require('lodash');
 const dayjs = require('dayjs');
 const validate = require('./validate');
+const tools = require('./index');
 
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?\w+\.[a-z0-9_.[\]]*?}.*?)+}/gsi;
 const REG_MINI = /\{(\/.*?\/)?(\w+\.\w.*?)\}/gi;
@@ -12,7 +11,35 @@ const REG_MINI = /\{(\/.*?\/)?(\w+\.\w.*?)\}/gi;
 // this {? button {/do_(.+)/btn.text} action} is great
 
 // ==============================================
-function objectReplace(obj, string, _opt) {
+function objectReplace(obj, somedata, options) {
+
+  // simple value
+  if (typeof somedata !== 'object') {
+    const res = stringReplace(obj, somedata, options);
+    return res;
+  }
+
+  // first - change key NAMES
+  Object.keys(somedata).forEach((key) => {
+    const newkey = stringReplace(obj, key, options);
+    if (newkey === key) return;
+
+    somedata[newkey] = somedata[key];
+    delete somedata[key];
+  });
+
+  // then change values
+  Object.keys(somedata).forEach((key) => {
+
+    // recursive
+    somedata[key] = objectReplace(obj, somedata[key], options);
+  });
+
+  return somedata;
+}
+
+// ==============================================
+function stringReplace(obj, string, _opt) {
   // str.true: null = 'null'
   // str.false: null = ''
 
