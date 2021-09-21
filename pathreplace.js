@@ -5,6 +5,7 @@ const tools = require('./index');
 
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?\w+\.[a-z0-9_.[\]]*?}.*?)+}/gsi;
 const REG_MINI = /\{(\/.*?\/)?(\w+\.\w.*?)\}/gi;
+const REG_RAND = /\{rnd\.(\d+)\}/gi;
 
 // example:
 // this user{?, who {user.age} years old,} can do some job
@@ -105,6 +106,8 @@ function pathReplace(object, strPath, opt) {
   // example: {/\d{3,}/msg.text}
 
   let res = strPath;
+  res = randomReplace(res);
+
   let regexResult;
   let found = false;
 
@@ -138,6 +141,29 @@ function pathReplace(object, strPath, opt) {
     res = res.replace(strfull, replaceText);
   }
   return [res, found];
+}
+
+// ==============================================
+function randomReplace(strPath) {
+
+  if (!strPath.match(REG_RAND)) return strPath;
+
+  let res = strPath;
+  let regexResult;
+
+  while ((regexResult = REG_RAND.exec(strPath)) !== null) {
+
+    const strfull = regexResult[0];
+    const snumber = regexResult[1];
+    const inumber = parseInt(snumber) || 100;
+
+    const rnd = Math.round(Math.random() * inumber);
+    const srnd = rnd.toString().padStart(snumber.length, '0');
+
+    res = res.replace(strfull, srnd);
+  }
+
+  return res;
 }
 
 module.exports = objectReplace;
