@@ -3,9 +3,11 @@ const dayjs = require('dayjs');
 const validate = require('./validate');
 const tools = require('./index');
 
+const DEBUG = false;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?\w+\.[a-z0-9_.[\]]*?}.*?)+}/gsi;
 const REG_MINI = /\{(\/.*?\/)?(\w+\.\w.*?)\}/gi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
+const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
 
 // example:
 // this user{?, who {user.age} years old,} can do some job
@@ -41,6 +43,8 @@ function objectReplace(obj, somedata, options) {
 
 // ==============================================
 function stringReplace(obj, string, _opt) {
+  if (DEBUG) console.debug(`stringReplace ${string}`);
+
   // str.true: null = 'null'
   // str.false: null = ''
 
@@ -91,22 +95,38 @@ function stringReplace(obj, string, _opt) {
     }
   }
 
+  out = multiReplace(obj, out, opt);
+
   // and now - simple pathReplace
   [out] = pathReplace(obj, out, opt); // first element is a string
   out = out.replace(/ +/g, ' ');
   out = out.replace(/\n{3,}/gm, '\n\n');
 
+  if (DEBUG) console.debug(`stringReplace res: ${out}`);
   return out;
 }
 
 // ==============================================
+function multiReplace(object, strPath, opt) {
+  if (DEBUG) console.debug(`multiReplace ${strPath}`);
+
+  let res = strPath;
+
+  res = dateDiffReplace(object, res, opt);
+  res = randomReplace(res);
+
+  if (DEBUG) console.debug(`multiReplace res: ${res}`);
+  return res;
+}
+
+// ==============================================
 function pathReplace(object, strPath, opt) {
+  if (DEBUG) console.debug(`pathReplace '${strPath}'`);
 
   if (!strPath.match(REG_MINI)) return [strPath, false];
   // example: {/\d{3,}/msg.text}
 
   let res = strPath;
-  res = randomReplace(res);
 
   let regexResult;
   let found = false;
@@ -140,11 +160,14 @@ function pathReplace(object, strPath, opt) {
     if (replaceText !== '' && replaceText !== null) found = true;
     res = res.replace(strfull, replaceText);
   }
+
+  if (DEBUG) console.debug(`pathReplace res: ${res}`);
   return [res, found];
 }
 
 // ==============================================
 function randomReplace(strPath) {
+  if (DEBUG) console.debug(`randomReplace ${strPath}`);
 
   if (!strPath.match(REG_RAND)) return strPath;
 
@@ -163,6 +186,45 @@ function randomReplace(strPath) {
     res = res.replace(strfull, srnd);
   }
 
+  if (DEBUG) console.debug(`randomReplace res: ${res}`);
+  return res;
+}
+
+// ==============================================
+function dateDiffReplace(obj, strPath, opt) {
+  if (DEBUG) console.debug(`dateDiffReplace ${strPath}`);
+
+  if (!strPath.match(REG_DIFF)) return strPath;
+
+  let res = strPath;
+  let regexResult;
+
+  while ((regexResult = REG_DIFF.exec(strPath)) !== null) {
+
+    const strfull = regexResult[0];
+    const objpath = regexResult[1];
+    const afterbefore = regexResult[2];
+    const interval = regexResult[3];
+
+    const [objvalue] = pathReplace(obj, `{${objpath}}`, opt);
+
+    let diff;
+    if (dayjs(objvalue).isValid()) {
+
+      const date2 = dayjs(objvalue);
+      if (afterbefore === 'after') diff = dayjs().diff(date2, interval);
+      if (afterbefore === 'before') diff = date2.diff(dayjs(), interval);
+      if (DEBUG) console.log(`diff ${diff}`);
+    }
+    else {
+      diff = null;
+      if (DEBUG) console.log(`diff ${diff}`);
+    }
+
+    res = res.replace(strfull, diff);
+  }
+
+  if (DEBUG) console.debug(`dateDiffReplace res: ${res}`);
   return res;
 }
 
