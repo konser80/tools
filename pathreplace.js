@@ -16,6 +16,10 @@ const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|we
 // ==============================================
 function objectReplace(obj, somedata, options) {
 
+  if (somedata === undefined
+    || somedata === null
+    || typeof somedata === 'boolean') return somedata;
+
   // simple value
   if (typeof somedata !== 'object') {
     const res = stringReplace(obj, somedata, options);
