@@ -65,6 +65,7 @@ function stringReplace(obj, string, _opt) {
     null: 'null',
     undefined: '',
     empty: '',
+    array: undefined,
     date: true,
   },
   ..._opt };
@@ -148,6 +149,9 @@ function pathReplace(object, strPath, opt) {
     if (replaceText === true) replaceText = opt.true;
     if (replaceText === false) replaceText = opt.false;
     if (replaceText === undefined) replaceText = opt.undefined;
+    if (Array.isArray(replaceText) && opt.array) {
+      replaceText = replaceText.filter(Boolean).join(opt.array);
+    }
     if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
     // if (opt.str && replaceText === null) replaceText = 'null';
     // replaceText = replaceText.toString().trim();
