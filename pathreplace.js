@@ -5,7 +5,7 @@ const tools = require('./index');
 
 const DEBUG = false;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.[a-z0-9_.[\]]*?}.*?)+}/gsi;
-const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.\w.*?)\}/gi;
+const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.[a-z_][a-z0-9_.[\]]*?)\}/gi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
 
@@ -132,11 +132,14 @@ function pathReplace(object, strPath, opt) {
   // example: {/\d{3,}/msg.text}
 
   let res = strPath;
-
-  let regexResult;
   let found = false;
 
-  while ((regexResult = REG_MINI.exec(strPath)) !== null) {
+  while (res.match(REG_MINI)) {
+
+    // we need this because of 'res' change!
+    const regexResult = REG_MINI.exec(res);
+
+    if (DEBUG) console.debug(`regexResult ${tools.textify(regexResult)}`);
 
     const strfull = regexResult[0];
     const sregex = regexResult[1];
@@ -167,9 +170,10 @@ function pathReplace(object, strPath, opt) {
 
     if (replaceText !== '' && replaceText !== null) found = true;
     res = res.replace(strfull, replaceText);
+    if (DEBUG) console.debug(`res: ${res}`);
   }
 
-  if (DEBUG) console.debug(`pathReplace res: ${res}`);
+  if (DEBUG) console.debug(`finish pathReplace res: ${res}`);
   return [res, found];
 }
 
