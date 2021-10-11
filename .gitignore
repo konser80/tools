@@ -16,4 +16,6 @@ key*.json
 # Other
 package-lock.json
 test*.*
+test/
+.eslint*
 docs/
