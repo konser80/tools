@@ -26,7 +26,9 @@ function init() {
       // if (!showtime) toLog.timestamp = '';
       if (opt.time === false) toLog.timestamp = '';
 
-      toLog.level = (name === 'error') ? `${'[ERROR]'.bgRed} ` : '';
+      toLog.level = '';
+      if (name === 'error') toLog.level = `${'[ERROR]'.bgRed} `;
+      if (name === 'warn') toLog.level = `${'[WARN]'.black.bgYellow} `;
       toLog.message = textify(data, { colors: true });
 
       // start with grey & replace all 'reset' to grey
