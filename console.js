@@ -42,7 +42,7 @@ function init() {
         const call = getStack()[1];
         if (call) {
           const file = call.getFileName().replace(`${process.cwd()}/`, '');
-          toLog.callsite = `(${file}:${call.getLineNumber()})`.grey;
+          toLog.callsite = `(${file}:${call.getLineNumber()}) `.grey;
         }
       }
 
@@ -63,7 +63,7 @@ function init() {
           else {
             sdiff = ` +${(diff / 60000).toFixed(1)}m`;
           }
-          sdiff = sdiff.green;
+          sdiff = sdiff.green.dim;
         }
         // previous = now;
 
@@ -73,7 +73,7 @@ function init() {
 
       // add empty line for multi-line message
       if (typeof toLog.message === 'string' && opt.time && toLog.message.indexOf('\n') !== -1) toLog.message = `\n${toLog.message}`;
-      const result = `${toLog.timestamp}${toLog.callsite}${toLog.level}${toLog.message}`;
+      const result = `${toLog.timestamp}${toLog.level}${toLog.callsite}${toLog.message}`;
       origFunction(result);
     }
 
