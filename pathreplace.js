@@ -65,6 +65,7 @@ function stringReplace(obj, string, _opt) {
     null: 'null',
     undefined: '',
     empty: '',
+    crlf: undefined,
     array: undefined,
     date: true,
   },
@@ -152,6 +153,9 @@ function pathReplace(object, strPath, opt) {
     if (replaceText === true) replaceText = opt.true;
     if (replaceText === false) replaceText = opt.false;
     if (replaceText === undefined) replaceText = opt.undefined;
+    if (typeof replaceText === 'string' && opt.crlf !== undefined) {
+      replaceText = replaceText.replace(/\n/g, opt.crlf);
+    }
     if (Array.isArray(replaceText) && opt.array) {
       replaceText = replaceText.filter(Boolean).join(opt.array);
     }
