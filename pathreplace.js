@@ -15,6 +15,7 @@ const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|we
 
 // ==============================================
 function objectReplace(obj, somedata, options) {
+  if (DEBUG) console.debug(`objectReplace ${somedata}`);
 
   if (somedata === undefined
     || somedata === null
@@ -148,6 +149,8 @@ function pathReplace(object, strPath, opt) {
 
     // get value
     let replaceText = _.get(object, objpath);
+    if (DEBUG) console.debug(`[ ] replaceText (before): '${typeof replaceText}' ${tools.textify(replaceText)}`);
+
     if (replaceText === '') replaceText = opt.empty;
     if (replaceText === null) replaceText = opt.null;
     if (replaceText === true) replaceText = opt.true;
@@ -156,10 +159,14 @@ function pathReplace(object, strPath, opt) {
     if (typeof replaceText === 'string' && opt.crlf !== undefined) {
       replaceText = replaceText.replace(/\n/g, opt.crlf);
     }
-    if (Array.isArray(replaceText) && opt.array) {
+    // of this is an array of simple items, not array of objects
+    if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
       replaceText = replaceText.filter(Boolean).join(opt.array);
     }
     if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
+
+    if (DEBUG) console.debug(`[ ] replaceText (after): '${typeof replaceText}' ${replaceText}`);
+
     // if (opt.str && replaceText === null) replaceText = 'null';
     // replaceText = replaceText.toString().trim();
 
