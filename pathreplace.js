@@ -175,6 +175,9 @@ function pathReplace(object, strPath, opt) {
       try {
         const subRegex = new RegExp(sregex.slice(1, -1), 'i');
         const subResult = replaceText.match(subRegex);
+
+        // in case we have subregex, but not match - we replace with ''
+        if (!subResult) replaceText = '';
         if (subResult && subResult[1]) replaceText = subResult[1];
       }
       catch (e) {
