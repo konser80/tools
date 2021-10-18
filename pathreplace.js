@@ -172,9 +172,15 @@ function pathReplace(object, strPath, opt) {
 
     // if we have sub-regex, apply it
     if (typeof replaceText === 'string' && sregex) {
-      const subRegex = new RegExp(sregex.slice(1, -1));
-      const subResult = replaceText.match(subRegex);
-      if (subResult && subResult[1]) replaceText = subResult[1];
+      try {
+        const subRegex = new RegExp(sregex.slice(1, -1), 'i');
+        const subResult = replaceText.match(subRegex);
+        if (subResult && subResult[1]) replaceText = subResult[1];
+      }
+      catch (e) {
+        console.error(`[-] tools.pathreplace: ${e.message}`);
+        console.log(sregex.slice(1, -1));
+      }
     }
 
     if (validate.isDateTime(replaceText) && opt.date) replaceText = dayjs(replaceText).format('YYYY-MM-DD HH:mm:ss');
