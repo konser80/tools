@@ -66,6 +66,7 @@ function stringReplace(obj, string, _opt) {
     null: 'null',
     undefined: '',
     empty: '',
+    escape: undefined,
     crlf: undefined,
     array: undefined,
     date: true,
@@ -156,9 +157,26 @@ function pathReplace(object, strPath, opt) {
     if (replaceText === true) replaceText = opt.true;
     if (replaceText === false) replaceText = opt.false;
     if (replaceText === undefined) replaceText = opt.undefined;
+
     if (typeof replaceText === 'string' && opt.crlf !== undefined) {
       replaceText = replaceText.replace(/\n/g, opt.crlf);
     }
+
+    if (typeof replaceText === 'string' && opt.escape !== undefined && typeof opt.escape === 'string') {
+      let newres = '';
+      for (let i = 0; i < replaceText.length; i += 1) {
+        // if (replaceText.charCodeAt(i) <= 126) newres += `\\${replaceText[i]}`;
+        // if (replaceText.charCodeAt(i) > 126) newres += replaceText[i];
+        if (opt.escape.indexOf(replaceText[i]) !== -1) {
+          newres += `\\${replaceText[i]}`;
+        }
+        else {
+          newres += replaceText[i];
+        }
+      }
+      replaceText = newres;
+    }
+
     // of this is an array of simple items, not array of objects
     if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
       replaceText = replaceText.filter(Boolean).join(opt.array);
