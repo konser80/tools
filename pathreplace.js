@@ -1,5 +1,8 @@
 const _ = require('lodash');
 const dayjs = require('dayjs');
+dayjs.extend(require('dayjs/plugin/utc'));
+dayjs.extend(require('dayjs/plugin/timezone'));
+
 const validate = require('./validate');
 const tools = require('./index');
 
@@ -70,6 +73,7 @@ function stringReplace(obj, string, _opt) {
     crlf: undefined,
     array: undefined,
     date: true,
+    tz: undefined,
   },
   ..._opt };
 
@@ -204,7 +208,15 @@ function pathReplace(object, strPath, opt) {
       }
     }
 
-    if (validate.isDateTime(replaceText) && opt.date) replaceText = dayjs(replaceText).format('YYYY-MM-DD HH:mm:ss');
+    if (validate.isDateTime(replaceText) && opt.date) {
+      try {
+        replaceText = dayjs(replaceText).tz(opt.tz).format('YYYY-MM-DD HH:mm:ss');
+      }
+      catch (e) {
+        console.error(`[-] ${e.message}`);
+        replaceText = dayjs(replaceText).tz().format('YYYY-MM-DD HH:mm:ss');
+      }
+    }
 
     if (replaceText !== '' && replaceText !== null) found = true;
     res = res.replace(strfull, replaceText);
