@@ -5,7 +5,6 @@ require('colors');
 
 const LOGLEVEL = 'debug';
 let previous = null;
-let counter = 0;
 
 // ==============================================
 function configureLogger(minlevel = LOGLEVEL) {
@@ -66,8 +65,6 @@ function formatLog4JS(logEvent) {
 // ==============================================
 function formatLog(message, level, _opt, datetime) {
   const opt = { ...{ time: true, ms: true }, ..._opt };
-  counter += 1;
-
   const log = {
     data: message,
     ms: '',
@@ -104,7 +101,7 @@ function formatLog(message, level, _opt, datetime) {
   }
 
   // result
-  const res = `${log.time}${log.level}${log.data}${log.ms} ${counter}`;
+  const res = `${log.time}${log.level}${log.data}${log.ms}`;
   return res;
 }
 
