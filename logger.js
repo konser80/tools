@@ -12,6 +12,9 @@ function configureLogger(minlevel = LOGLEVEL) {
   const layout = { type: 'pretty' };
   log4js.addLayout('pretty', () => formatLog4JS);
   log4js.configure({
+    levels: {
+      SILLY: { value: 2500, colour: 'blue' }
+    },
     appenders: {
       console: { layout, type: 'stdout' },
 
@@ -24,7 +27,7 @@ function configureLogger(minlevel = LOGLEVEL) {
       saveerror: { type: 'logLevelFilter', appender: 'errorfile', level: 'warn' },
     },
     categories: {
-      default: { appenders: ['show', 'tracefile', 'savedebug', 'saveerror'], level: 'trace' }
+      default: { appenders: ['show', 'tracefile', 'savedebug', 'saveerror'], level: 'silly' }
     }
   });
 
@@ -93,7 +96,7 @@ function formatLog(message, level, _opt, datetime) {
   if (typeof log.data === 'string' && opt.time && log.data.indexOf('\n') !== -1) log.data = `\n${log.data}`;
 
   // colors
-  if (level === 'trace') log.data = log.data.blue;
+  if (level === 'trace' || level === 'silly') log.data = log.data.blue;
   if (level === 'debug') {
     log.data = log.data.grey;
     // our message could be colored, so let's start with grey & replace all 'color.reset' to grey
