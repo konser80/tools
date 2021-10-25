@@ -29,6 +29,7 @@ function configureLogger(minlevel = LOGLEVEL) {
   });
 
   const logger = log4js.getLogger();
+  logger.shutdown = log4js.shutdown;
   return logger;
 }
 // ==============================================
