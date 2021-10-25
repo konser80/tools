@@ -96,12 +96,13 @@ function formatLog(message, level, _opt, datetime) {
   if (typeof log.data === 'string' && opt.time && log.data.indexOf('\n') !== -1) log.data = `\n${log.data}`;
 
   // colors
-  if (level === 'trace' || level === 'silly') log.data = log.data.blue;
+  if (level === 'trace' || level === 'silly') {
+    log.data = log.data.replace(/\u001b\[\d{1,2}m/g, '');
+    log.data = log.data.blue;
+  }
   if (level === 'debug') {
+    log.data = log.data.replace(/\u001b\[\d{1,2}m/g, '');
     log.data = log.data.grey;
-    // our message could be colored, so let's start with grey & replace all 'color.reset' to grey
-    // toLog.message = `\u001b[90m${toLog.message}`;
-    // toLog.message = toLog.message.replace(/\[39m/g, '[90m');
   }
 
   // result
