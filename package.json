@@ -1,6 +1,6 @@
 {
   "name": "tools",
-  "version": "1.8.0",
+  "version": "2.0.0",
   "description": "small useful functions",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "colors": "^1.4.0",
     "dayjs": "^1.10.4",
     "lodash": "^4.17.21",
+    "log4js": "^6.3.0",
     "validator": "^13.6.0"
   },
   "repository": {
