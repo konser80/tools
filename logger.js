@@ -4,6 +4,7 @@ const dayjs = require('dayjs');
 const tools = require('./index');
 require('colors');
 
+const REGEX_ERROR = /at (?:(.+)\s+\()?(?:(.+?):(\d+)(?::(\d+))?|([^)]+))\)?/;
 const LOGLEVEL = 'debug';
 let previous = null;
 
@@ -69,7 +70,7 @@ function formatLog4JS(logEvent) {
 }
 // ==============================================
 function formatLog(message, level, _opt, datetime) {
-  const opt = { ...{ time: true, ms: true, err: false }, ..._opt };
+  const opt = { ...{ time: true, ms: true, err: null }, ..._opt };
   const log = {
     data: message,
     ms: '',
@@ -82,21 +83,25 @@ function formatLog(message, level, _opt, datetime) {
   // message
   log.data = tools.textify(log.data, { colors: true });
 
+  // level
+  if (level === 'warn') log.level = `${'[WARN]'.yellow.inverse} `;
+  if (level === 'error') log.level = `${'[ERROR]'.bgRed} `;
+  if (level === 'fatal') log.level = `${'[FATAL]'.red} `;
+
   // error?
-  if (message instanceof Error) {
-    const REGEX_ERROR = /at (?:(.+)\s+\()?(?:(.+?):(\d+)(?::(\d+))?|([^)]+))\)?/;
-    const regexResult = message.stack.match(REGEX_ERROR);
+  if (message instanceof Error || opt.err instanceof Error) {
+    const err = (message instanceof Error) ? message : opt.err;
+    const regexResult = err.stack.match(REGEX_ERROR);
     log.fname = _.last(regexResult[2].split('/'));
     log.lines = `${regexResult[3]}:${regexResult[4]}`;
 
-    // display short error version
-    if (opt.err === false) log.data = tools.textify(message.message, { colors: true });
-  }
+    log.level += `${`(${log.fname}:${log.lines})`.grey} `;
 
-  // level
-  if (level === 'warn') log.level = `${'[WARN]'.yellow.inverse} `;
-  if (level === 'error') log.level = `${'[ERROR]'.bgRed} ${`(${log.fname}:${log.lines})`.grey} `;
-  if (level === 'fatal') log.level = `${'[FATAL]'.red} `;
+    // display short error version
+    if (message instanceof Error && log.data.split('\n').length > 6) {
+      log.data = log.data.split('\n').slice(0, 6).join('\n');
+    }
+  }
 
   // timestamp
   const now = dayjs(datetime);
