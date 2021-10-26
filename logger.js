@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const log4js = require('log4js');
 const dayjs = require('dayjs');
 const tools = require('./index');
@@ -68,17 +69,33 @@ function formatLog4JS(logEvent) {
 }
 // ==============================================
 function formatLog(message, level, _opt, datetime) {
-  const opt = { ...{ time: true, ms: true }, ..._opt };
+  const opt = { ...{ time: true, ms: true, err: false }, ..._opt };
   const log = {
     data: message,
     ms: '',
     level: '',
-    time: ''
+    time: '',
+    fname: '', // error: filepath
+    lines: '' // error: line & column
   };
+
+  // message
+  log.data = tools.textify(log.data, { colors: true });
+
+  // error?
+  if (message instanceof Error) {
+    const REGEX_ERROR = /at (?:(.+)\s+\()?(?:(.+?):(\d+)(?::(\d+))?|([^)]+))\)?/;
+    const regexResult = message.stack.match(REGEX_ERROR);
+    log.fname = _.last(regexResult[2].split('/'));
+    log.lines = `${regexResult[3]}:${regexResult[4]}`;
+
+    // display short error version
+    if (opt.err === false) log.data = tools.textify(message.message, { colors: true });
+  }
 
   // level
   if (level === 'warn') log.level = `${'[WARN]'.yellow.inverse} `;
-  if (level === 'error') log.level = `${'[ERROR]'.bgRed} `;
+  if (level === 'error') log.level = `${'[ERROR]'.bgRed} ${`(${log.fname}:${log.lines})`.grey} `;
   if (level === 'fatal') log.level = `${'[FATAL]'.red} `;
 
   // timestamp
@@ -88,9 +105,6 @@ function formatLog(message, level, _opt, datetime) {
   // difference
   if (opt.ms && (level === 'trace' || level === 'debug')) log.ms = getTimeDifference(now).green.dim;
   previous = now;
-
-  // message
-  log.data = tools.textify(log.data, { colors: true });
 
   // multiline: check type because it could be 'true/false' values
   if (typeof log.data === 'string' && opt.time && log.data.indexOf('\n') !== -1) log.data = `\n${log.data}`;
