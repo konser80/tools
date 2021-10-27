@@ -7,6 +7,7 @@ require('colors');
 const REGEX_ERROR = /at (?:(.+)\s+\()?(?:(.+?):(\d+)(?::(\d+))?|([^)]+))\)?/;
 const LOGLEVEL = 'debug';
 let previous = null;
+const cache = {};
 
 // ==============================================
 function configureLogger(minlevel = LOGLEVEL) {
@@ -65,7 +66,17 @@ function formatLog4JS(logEvent) {
   const opt = logEvent.data[1] || {};
   const time = logEvent.startTime || dayjs();
 
+  // result from cache
+  if (cache.level === level
+  && cache.data === data
+  && cache.time === time) return cache.res;
+
   const res = formatLog(data, level, opt, time);
+
+  cache.level = level;
+  cache.data = data;
+  cache.time = time;
+  cache.res = res;
   return res;
 }
 // ==============================================
