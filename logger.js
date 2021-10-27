@@ -103,10 +103,11 @@ function formatLog(message, level, _opt, datetime) {
   if (message instanceof Error || opt.err instanceof Error) {
     const err = (message instanceof Error) ? message : opt.err;
     const regexResult = err.stack.match(REGEX_ERROR);
-    log.fname = _.last(regexResult[2].split('/'));
-    log.lines = `${regexResult[3]}:${regexResult[4]}`;
-
-    log.level += `${`(${log.fname}:${log.lines})`.grey} `;
+    if (regexResult) {
+      log.fname = _.last(regexResult[2].split('/'));
+      log.lines = `${regexResult[3]}:${regexResult[4]}`;
+      log.level += `${`(${log.fname}:${log.lines})`.grey} `;
+    }
 
     // display short error version
     if (message instanceof Error && log.data.split('\n').length > 6) {
