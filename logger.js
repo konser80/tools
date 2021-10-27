@@ -26,11 +26,12 @@ function configureLogger(minlevel = LOGLEVEL) {
       errorfile: { layout, type: 'dateFile', filename: 'log/error.log', pattern: '.yyyy-MM', keepFileExt: true },
 
       show: { type: 'logLevelFilter', appender: 'console', level: minlevel },
+      savetrace: { type: 'logLevelFilter', appender: 'tracefile', level: 'trace' },
       savedebug: { type: 'logLevelFilter', appender: 'debugfile', level: 'debug' },
       saveerror: { type: 'logLevelFilter', appender: 'errorfile', level: 'warn' },
     },
     categories: {
-      default: { appenders: ['show', 'tracefile', 'savedebug', 'saveerror'], level: 'silly' }
+      default: { appenders: ['show', 'savetrace', 'savedebug', 'saveerror'], level: 'silly' }
     }
   });
 
