@@ -5,6 +5,8 @@ module.exports.combine = require('./combine');
 module.exports.replace = require('./pathreplace');
 module.exports.tftotime = require('./timeframes');
 
+module.exports.randomtext = require('./randomtext').randomtext;
+
 module.exports.queue = require('./queue').queue;
 module.exports.timeout = require('./queue').timeout;
 

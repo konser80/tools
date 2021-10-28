@@ -128,16 +128,20 @@ function formatLog(message, level, _opt, datetime) {
 
   // colors
   if (level === 'trace' || level === 'silly') {
-    log.data = log.data.replace(/\u001b\[\d{1,2}m/g, '');
-    log.data = log.data.blue;
+    log.data = resetColors(log.data).blue;
   }
   if (level === 'debug') {
-    log.data = log.data.replace(/\u001b\[\d{1,2}m/g, '');
-    log.data = log.data.grey;
+    log.data = resetColors(log.data).grey;
   }
 
   // result
   const res = `${log.time}${log.level}${log.data}${log.ms}`;
+  return res;
+}
+// ==============================================
+function resetColors(src) {
+  if (!src || typeof src !== 'string') return src.toString();
+  const res = src.replace(/\u001b\[\d{1,2}m/g, '');
   return res;
 }
 
