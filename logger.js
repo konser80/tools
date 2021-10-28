@@ -1,10 +1,9 @@
-const _ = require('lodash');
 const log4js = require('log4js');
 const dayjs = require('dayjs');
 const tools = require('./index');
 require('colors');
 
-const REGEX_ERROR = /at (?:(.+)\s+\()?(?:(.+?):(\d+)(?::(\d+))?|([^)]+))\)?/;
+const REGEX_STACK = /at (.+?) \(.+?([^/]+?):(\d+):(\d+)\)/;
 const LOGLEVEL = 'debug';
 let previous = null;
 const cache = {};
@@ -103,9 +102,9 @@ function formatLog(message, level, _opt, datetime) {
   // error?
   if (message instanceof Error || opt.err instanceof Error) {
     const err = (message instanceof Error) ? message : opt.err;
-    const regexResult = err.stack.match(REGEX_ERROR);
+    const regexResult = err.stack.match(REGEX_STACK);
     if (regexResult) {
-      log.fname = _.last(regexResult[2].split('/'));
+      log.fname = regexResult[2];
       log.lines = `${regexResult[3]}:${regexResult[4]}`;
       log.level += `${`(${log.fname}:${log.lines})`.grey} `;
     }

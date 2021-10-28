@@ -1,3 +1,4 @@
+module.exports.logger = require('./logger').logger;
 
 module.exports.val = require('./value');
 module.exports.combine = require('./combine');
@@ -13,8 +14,9 @@ module.exports.istime = validate.isTime;
 module.exports.isdate = validate.isDate;
 module.exports.isdatetime = validate.isDateTime;
 
+module.exports.jparse = require('./jparse').parse;
+
 module.exports.textify = require('./textify').textify;
-module.exports.logger = require('./logger').logger;
 
 // array.forEachAsync
 require('./async').init();
