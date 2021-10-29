@@ -20,9 +20,9 @@ function configureLogger(minlevel = LOGLEVEL) {
     appenders: {
       console: { layout, type: 'stdout' },
 
-      tracefile: { layout, type: 'dateFile', filename: 'log/trace.log', pattern: '.yyyy-MM-dd-hh-00-00', keepFileExt: true, daysToKeep: 7 },
-      debugfile: { layout, type: 'dateFile', filename: 'log/debug.log', pattern: '.yyyy-MM-dd', keepFileExt: true, daysToKeep: 30 },
-      errorfile: { layout, type: 'dateFile', filename: 'log/error.log', pattern: '.yyyy-MM', keepFileExt: true },
+      tracefile: { layout, type: 'dateFile', filename: 'logs/trace.log', pattern: 'old/yyyy-MM/yyyy-MM-dd-hh0000', keepFileExt: true, daysToKeep: 7 },
+      debugfile: { layout, type: 'dateFile', filename: 'logs/debug.log', pattern: 'old/yyyy-MM/yyyy-MM-dd', keepFileExt: true, daysToKeep: 30 },
+      errorfile: { layout, type: 'dateFile', filename: 'logs/error.log', pattern: 'old/yyyy-MM', keepFileExt: true },
 
       show: { type: 'logLevelFilter', appender: 'console', level: minlevel },
       savetrace: { type: 'logLevelFilter', appender: 'tracefile', level: 'trace' },
