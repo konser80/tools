@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const uuid = require('uuid');
 const dayjs = require('dayjs');
 dayjs.extend(require('dayjs/plugin/utc'));
 dayjs.extend(require('dayjs/plugin/timezone'));
@@ -10,6 +11,7 @@ const DEBUG = false;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.[a-zа-я_][a-zа-я0-9_.[\]]*?)\}/gi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
+const REG_UUID = /\{uuid\.?(v\d)?}/gi;
 const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
 
 // example:
@@ -126,6 +128,7 @@ function multiReplace(object, strPath, opt) {
 
   res = dateDiffReplace(object, res, opt);
   res = randomReplace(res);
+  res = uuidReplace(res);
 
   if (DEBUG) console.debug(`multiReplace res: ${res}`);
   return res;
@@ -225,6 +228,27 @@ function pathReplace(object, strPath, opt) {
 
   if (DEBUG) console.debug(`finish pathReplace res: ${res}`);
   return [res, found];
+}
+
+// ==============================================
+function uuidReplace(strPath) {
+  if (DEBUG) console.debug(`uuidReplace ${strPath}`);
+  if (!strPath.match(REG_UUID)) return strPath;
+
+  let res = strPath;
+  let regexResult;
+
+  while ((regexResult = REG_UUID.exec(strPath)) !== null) {
+
+    const strfull = regexResult[0];
+    const ver = regexResult[1] || 'v4';
+
+    const subres = uuid[ver]();
+    res = res.replace(strfull, subres);
+  }
+
+  if (DEBUG) console.debug(`uuidReplace res: ${res}`);
+  return res;
 }
 
 // ==============================================
