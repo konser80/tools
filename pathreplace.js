@@ -8,8 +8,8 @@ const validate = require('./validate');
 const tools = require('./index');
 
 const DEBUG = false;
-const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
-const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.[a-zа-я_][a-zа-я0-9_.[\]]*?)\}/gi;
+const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
+const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?)\}/gi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REG_UUID = /\{uuid\.?(v\d)?}/gi;
 const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
