@@ -8,11 +8,11 @@ const validate = require('./validate');
 const tools = require('./index');
 
 const DEBUG = false;
-const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
-const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
-const REG_RAND = /\{rnd\.(\d+)\}/gi;
-const REG_UUID = /\{uuid\.?(v\d)?}/gi;
-const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
+// we can't use global regex because of a lastIndex pointer =(
+// const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
+// const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
+// const REG_RAND = /\{rnd\.(\d+)\}/gi;
+// const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
 
 // example:
 // this user{?, who {user.age} years old,} can do some job
@@ -26,46 +26,7 @@ function objectReplace(obj, somedata, options) {
     || somedata === null
     || typeof somedata === 'boolean') return somedata;
 
-  // simple value
-  if (typeof somedata !== 'object') {
-    const res = stringReplace(obj, somedata, options);
-    return res;
-  }
-
-  // first - change key NAMES
-  Object.keys(somedata).forEach((key) => {
-    const newkey = stringReplace(obj, key, options);
-    if (newkey === key) return;
-
-    somedata[newkey] = somedata[key];
-    delete somedata[key];
-  });
-
-  // then change values
-  Object.keys(somedata).forEach((key) => {
-
-    // recursive
-    somedata[key] = objectReplace(obj, somedata[key], options);
-  });
-
-  return somedata;
-}
-
-// ==============================================
-function stringReplace(obj, string, _opt) {
-  if (DEBUG) console.debug(`stringReplace ${string}`);
-
-  // str.true: null = 'null'
-  // str.false: null = ''
-
-  if (!string) return string;
-  if (typeof string !== 'string') return string;
-
-  let out = string;
-  let reg;
-
   const opt = { ...{
-    // str: false,
     true: 'true',
     false: 'false',
     null: 'null',
@@ -77,241 +38,280 @@ function stringReplace(obj, string, _opt) {
     date: true,
     tz: undefined,
   },
-  ..._opt };
+  ...options };
 
-  // smart replace
-  while ((reg = REG_FULL.exec(string)) !== null) {
+  if (DEBUG) console.debug(options);
 
-    // console.log(`LOOP. out = ${out}`);
-    // console.debug(reg);
+  // simple value
+  if (typeof somedata !== 'object') {
+    const res = smartReplace(obj, somedata, opt);
+    return res;
+  }
+
+  // first - change key NAMES
+  Object.keys(somedata).forEach((key) => {
+    const newkey = smartReplace(obj, key, opt);
+    if (newkey === key) return;
+
+    somedata[newkey] = somedata[key];
+    delete somedata[key];
+  });
+
+  // then change values
+  Object.keys(somedata).forEach((key) => {
+
+    // recursive
+    somedata[key] = objectReplace(obj, somedata[key], opt);
+  });
+
+  return somedata;
+}
+
+// ==============================================
+function smartReplace(obj, strPath, opt) {
+  if (DEBUG) console.debug(`try smartReplace '${strPath}'`);
+
+  if (!strPath || typeof strPath !== 'string') return strPath;
+
+  // user{? age {user.age} and name {user.name}},
+  let out = strPath;
+
+  const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
+  const regexResult = REG_FULL.exec(strPath);
+  if (regexResult) {
     // [0] full string
     // [1] sub-path in {}
     // [2] sub-regex - if any
 
-    // user{? age {user.age} and name {user.name}},
+    if (DEBUG) console.debug(`smartReplace '${strPath}'`);
 
     // remove "{?" and "}"
-    let newline = reg[0].slice(2, -1);
-    // console.debug(`[+] newline "${newline}"`);
+    const subline = regexResult[0].slice(2, -1);
 
     // we have to use FOUND var because of two and more paths in one string
-    const [subres, found] = pathReplace(obj, newline, opt);
+    const res = multiReplace(obj, subline, opt);
 
-    // console.debug(`subres: ${subres}, found: ${found}`);
     // if replace result is empty - replace FULL string
-    if (!found) {
-      out = out.replace(reg[0], '');
+    if (res.found === 0) {
+      out = out.replace(regexResult[0], '');
     }
     else {
       // apply replace
-      newline = subres;
-      out = out.replace(reg[0], newline);
+      out = out.replace(regexResult[0], res.str);
     }
+
+    // recursive
+    smartReplace(obj, out, opt);
   }
 
-  out = multiReplace(obj, out, opt);
+  // we have no smart samples... let's change simples
 
-  // and now - simple pathReplace
-  [out] = pathReplace(obj, out, opt); // first element is a string
+  const res = multiReplace(obj, out, opt);
+
+  out = res.str;
   out = out.replace(/ +/g, ' ');
   out = out.replace(/\n{3,}/gm, '\n\n');
 
-  if (DEBUG) console.debug(`stringReplace res: ${out}`);
+  if (DEBUG) console.debug(`smartReplace res: ${out}`);
   return out;
 }
 
 // ==============================================
 function multiReplace(object, strPath, opt) {
-  if (DEBUG) console.debug(`multiReplace ${strPath}`);
+  if (DEBUG) console.debug(`multiReplace '${strPath}'`);
 
-  let res = strPath;
+  const res = { str: strPath, found: 0 };
+  let subres = {};
 
-  res = dateDiffReplace(object, res, opt);
-  res = randomReplace(res);
-  res = uuidReplace(res);
+  subres = dateDiffReplace(object, strPath, opt);
+  res.found += subres.found;
+  res.str = subres.str;
 
-  if (DEBUG) console.debug(`multiReplace res: ${res}`);
+  subres = randomReplace(res.str);
+  res.found += subres.found;
+  res.str = subres.str;
+
+  subres = uuidReplace(res.str);
+  res.found += subres.found;
+  res.str = subres.str;
+
+  subres = pathReplace(object, res.str, opt);
+  res.found += subres.found;
+  res.str = subres.str;
+
+  if (DEBUG) console.debug(`multiReplace found: ${res.found}`);
+
+  if (res.found > 0) subres = multiReplace(object, res.str, opt);
+  res.found += subres.found;
+  res.str = subres.str;
+
   return res;
 }
-
-// ==============================================
-function pathReplace(object, strPath, opt) {
-  if (DEBUG) console.debug(`pathReplace '${strPath}'`);
-
-  if (!strPath.match(REG_MINI)) return [strPath, false];
-  // example: {/\d{3,}/msg.text}
-
-  let res = strPath;
-  let found = false;
-
-  while (res.match(REG_MINI)) {
-
-    // we need this because of 'res' change!
-    const regexResult = REG_MINI.exec(res);
-
-    if (DEBUG) console.debug(`regexResult ${tools.textify(regexResult)}`);
-
-    const strfull = regexResult[0];
-    const sregex = regexResult[1];
-    const objpath = regexResult[2];
-
-    // get value
-    let replaceText = _.get(object, objpath);
-    if (DEBUG) console.debug(`[ ] replaceText (before): '${typeof replaceText}' ${tools.textify(replaceText)}`);
-
-    if (replaceText === '') replaceText = opt.empty;
-    if (replaceText === null) replaceText = opt.null;
-    if (replaceText === true) replaceText = opt.true;
-    if (replaceText === false) replaceText = opt.false;
-    if (replaceText === undefined) replaceText = opt.undefined;
-
-    if (typeof replaceText === 'string' && opt.crlf !== undefined) {
-      replaceText = replaceText.replace(/\n/g, opt.crlf);
-    }
-
-    if (typeof replaceText === 'string' && opt.escape !== undefined && typeof opt.escape === 'string') {
-      let newres = '';
-      for (let i = 0; i < replaceText.length; i += 1) {
-        // if (replaceText.charCodeAt(i) <= 126) newres += `\\${replaceText[i]}`;
-        // if (replaceText.charCodeAt(i) > 126) newres += replaceText[i];
-        if (opt.escape.indexOf(replaceText[i]) !== -1) {
-          newres += `\\${replaceText[i]}`;
-        }
-        else {
-          newres += replaceText[i];
-        }
-      }
-      replaceText = newres;
-    }
-
-    // of this is an array of simple items, not array of objects
-    if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
-      replaceText = replaceText.filter(Boolean).join(opt.array);
-    }
-    if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
-
-    if (DEBUG) console.debug(`[ ] replaceText (after): '${typeof replaceText}' ${replaceText}`);
-
-    // if (opt.str && replaceText === null) replaceText = 'null';
-    // replaceText = replaceText.toString().trim();
-
-    // if we have sub-regex, apply it
-    if (typeof replaceText === 'string' && sregex) {
-      try {
-        const subRegex = new RegExp(sregex.slice(1, -1), 'i');
-        const subResult = replaceText.match(subRegex);
-
-        // in case we have subregex, but not match - we replace with ''
-        if (!subResult) replaceText = '';
-        if (subResult && subResult[1]) replaceText = subResult[1];
-      }
-      catch (e) {
-        console.error(`[-] tools.pathreplace: ${e.message}`);
-        console.log(sregex.slice(1, -1));
-      }
-    }
-
-    if (validate.isDateTime(replaceText) && opt.date) {
-      try {
-        replaceText = dayjs(replaceText).tz(opt.tz).format('YYYY-MM-DD HH:mm:ss');
-      }
-      catch (e) {
-        console.error(`[-] ${e.message}`);
-        replaceText = dayjs(replaceText).tz().format('YYYY-MM-DD HH:mm:ss');
-      }
-    }
-
-    if (replaceText !== '' && replaceText !== null) found = true;
-    res = res.replace(strfull, replaceText);
-    if (DEBUG) console.debug(`res: ${res}`);
-  }
-
-  if (DEBUG) console.debug(`finish pathReplace res: ${res}`);
-  return [res, found];
-}
-
 // ==============================================
 function uuidReplace(strPath) {
+  if (DEBUG) console.debug(`try uuidReplace ${strPath}`);
+
+  const REG_UUID = /\{uuid\.?(v\d)?}/gi;
+  const regexResult = REG_UUID.exec(strPath);
+  if (!regexResult) return { str: strPath, found: 0 };
+
   if (DEBUG) console.debug(`uuidReplace ${strPath}`);
-  if (!strPath.match(REG_UUID)) return strPath;
 
-  let res = strPath;
-  let regexResult;
+  const strfull = regexResult[0];
+  const ver = regexResult[1] || 'v4';
 
-  while ((regexResult = REG_UUID.exec(strPath)) !== null) {
+  const subres = uuid[ver]();
+  const str = strPath.replace(strfull, subres);
 
-    const strfull = regexResult[0];
-    const ver = regexResult[1] || 'v4';
-
-    const subres = uuid[ver]();
-    res = res.replace(strfull, subres);
-  }
-
-  if (DEBUG) console.debug(`uuidReplace res: ${res}`);
-  return res;
+  if (DEBUG) console.debug(`uuidReplace str: ${str}`);
+  return { str, found: 1 };
 }
-
 // ==============================================
 function randomReplace(strPath) {
+  if (DEBUG) console.debug(`try randomReplace ${strPath}`);
+
+  const REG_RAND = /\{rnd\.(\d+)\}/gi;
+  const regexResult = REG_RAND.exec(strPath);
+  if (!regexResult) return { str: strPath, found: 0 };
+
   if (DEBUG) console.debug(`randomReplace ${strPath}`);
 
-  if (!strPath.match(REG_RAND)) return strPath;
+  const strfull = regexResult[0];
+  const snumber = regexResult[1];
+  const inumber = parseInt(snumber) || 100;
 
-  let res = strPath;
-  let regexResult;
+  const rnd = Math.round(Math.random() * inumber);
+  const srnd = rnd.toString().padStart(snumber.length, '0');
 
-  while ((regexResult = REG_RAND.exec(strPath)) !== null) {
+  const str = strPath.replace(strfull, srnd);
 
-    const strfull = regexResult[0];
-    const snumber = regexResult[1];
-    const inumber = parseInt(snumber) || 100;
-
-    const rnd = Math.round(Math.random() * inumber);
-    const srnd = rnd.toString().padStart(snumber.length, '0');
-
-    res = res.replace(strfull, srnd);
-  }
-
-  if (DEBUG) console.debug(`randomReplace res: ${res}`);
-  return res;
+  if (DEBUG) console.debug(`randomReplace str: ${str}`);
+  return { str, found: 1 };
 }
-
 // ==============================================
 function dateDiffReplace(obj, strPath, opt) {
+  if (DEBUG) console.debug(`try dateDiffReplace ${strPath}`);
+
+  const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
+  const regexResult = REG_DIFF.exec(strPath);
+  if (!regexResult) return { str: strPath, found: 0 };
+
   if (DEBUG) console.debug(`dateDiffReplace ${strPath}`);
 
-  if (!strPath.match(REG_DIFF)) return strPath;
+  const strfull = regexResult[0];
+  const objpath = regexResult[1];
+  const afterbefore = regexResult[2];
+  const interval = regexResult[3];
 
-  let res = strPath;
-  let regexResult;
+  const { str } = pathReplace(obj, `{${objpath}}`, opt);
 
-  while ((regexResult = REG_DIFF.exec(strPath)) !== null) {
+  let diff;
+  if (dayjs(str).isValid()) {
 
-    const strfull = regexResult[0];
-    const objpath = regexResult[1];
-    const afterbefore = regexResult[2];
-    const interval = regexResult[3];
-
-    const [objvalue] = pathReplace(obj, `{${objpath}}`, opt);
-
-    let diff;
-    if (dayjs(objvalue).isValid()) {
-
-      const date2 = dayjs(objvalue);
-      if (afterbefore === 'after') diff = dayjs().diff(date2, interval);
-      if (afterbefore === 'before') diff = date2.diff(dayjs(), interval);
-      if (DEBUG) console.log(`diff ${diff}`);
-    }
-    else {
-      diff = null;
-      if (DEBUG) console.log(`diff ${diff}`);
-    }
-
-    res = res.replace(strfull, diff);
+    const date2 = dayjs(str);
+    if (afterbefore === 'after') diff = dayjs().diff(date2, interval);
+    if (afterbefore === 'before') diff = date2.diff(dayjs(), interval);
+    if (DEBUG) console.log(`diff ${diff}`);
+  }
+  else {
+    diff = null;
+    if (DEBUG) console.log(`diff ${diff}`);
   }
 
-  if (DEBUG) console.debug(`dateDiffReplace res: ${res}`);
-  return res;
+  const strNew = strPath.replace(strfull, diff);
+
+  if (DEBUG) console.debug(`dateDiffReplace str: ${strNew}`);
+  return { str: strNew, found: 1 };
+}
+// ==============================================
+function pathReplace(object, strPath, opt) {
+  if (DEBUG) console.debug(`try pathReplace '${strPath}'`);
+
+  const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
+  const regexResult = REG_MINI.exec(strPath);
+  if (!regexResult) return { str: strPath, found: 0 };
+
+  if (DEBUG) console.debug(`pathReplace ${tools.textify(regexResult)}`);
+
+  const strfull = regexResult[0];
+  const sregex = regexResult[1];
+  const objpath = regexResult[2];
+  regexResult.lastIndex = 0;
+
+  // get value
+  let replaceText = _.get(object, objpath);
+  if (DEBUG) console.debug(`[ ] replaceText (before): '${typeof replaceText}' ${tools.textify(replaceText)}`);
+
+  if (replaceText === '') replaceText = opt.empty;
+  if (replaceText === null) replaceText = opt.null;
+  if (replaceText === true) replaceText = opt.true;
+  if (replaceText === false) replaceText = opt.false;
+  if (replaceText === undefined) replaceText = opt.undefined;
+
+  if (typeof replaceText === 'string' && opt.crlf !== undefined) {
+    replaceText = replaceText.replace(/\n/g, opt.crlf);
+  }
+
+  if (typeof replaceText === 'string' && opt.escape !== undefined && typeof opt.escape === 'string') {
+    let newres = '';
+    for (let i = 0; i < replaceText.length; i += 1) {
+      // if (replaceText.charCodeAt(i) <= 126) newres += `\\${replaceText[i]}`;
+      // if (replaceText.charCodeAt(i) > 126) newres += replaceText[i];
+      if (opt.escape.indexOf(replaceText[i]) !== -1) {
+        newres += `\\${replaceText[i]}`;
+      }
+      else {
+        newres += replaceText[i];
+      }
+    }
+    replaceText = newres;
+  }
+
+  // of this is an array of simple items, not array of objects
+  if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
+    replaceText = replaceText.filter(Boolean).join(opt.array);
+  }
+  if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
+
+  if (DEBUG) console.debug(`[ ] replaceText (after): '${typeof replaceText}' ${replaceText}`);
+
+  // if (opt.str && replaceText === null) replaceText = 'null';
+  // replaceText = replaceText.toString().trim();
+
+  // if we have sub-regex, apply it
+  if (typeof replaceText === 'string' && sregex) {
+    try {
+      const subRegex = new RegExp(sregex.slice(1, -1), 'i');
+      const subResult = replaceText.match(subRegex);
+
+      // in case we have subregex, but not match - we replace with ''
+      if (!subResult) replaceText = '';
+      if (subResult && subResult[1]) replaceText = subResult[1];
+    }
+    catch (e) {
+      console.error(`[-] tools.pathreplace: ${e.message}`);
+      console.log(sregex.slice(1, -1));
+    }
+  }
+
+  if (validate.isDateTime(replaceText) && opt.date) {
+    try {
+      replaceText = dayjs(replaceText).tz(opt.tz).format('YYYY-MM-DD HH:mm:ss');
+    }
+    catch (e) {
+      console.error(`[-] ${e.message}`);
+      replaceText = dayjs(replaceText).tz().format('YYYY-MM-DD HH:mm:ss');
+    }
+  }
+
+  let found = 0;
+
+  if (replaceText !== '' && replaceText !== null) found = 1;
+
+  const str = strPath.replace(strfull, replaceText);
+
+  if (DEBUG) console.debug(`pathReplace res: ${tools.textify({ str, found })}`);
+  return { str, found };
 }
 
 module.exports = objectReplace;
