@@ -40,16 +40,22 @@ function objectReplace(obj, somedata, options) {
   },
   ...options };
 
-  if (DEBUG) console.debug(options);
+  // if (DEBUG) console.debug(options);
 
   // simple value
   if (typeof somedata !== 'object') {
-    const res = smartReplace(obj, somedata, opt);
+    if (DEBUG) console.debug('call smartReplace for Simple Value');
+    let res = smartReplace(obj, somedata, opt);
+
+    if (DEBUG) console.debug('call multiReplace for last time');
+    res = multiReplace(obj, res, opt).str;
+
     return res;
   }
 
   // first - change key NAMES
   Object.keys(somedata).forEach((key) => {
+    if (DEBUG) console.debug('call smartReplace for keyName');
     const newkey = smartReplace(obj, key, opt);
     if (newkey === key) return;
 
@@ -83,42 +89,42 @@ function smartReplace(obj, strPath, opt) {
     // [1] sub-path in {}
     // [2] sub-regex - if any
 
-    if (DEBUG) console.debug(`smartReplace '${strPath}'`);
+    if (DEBUG) console.log(`smartReplace '${strPath}'`);
 
     // remove "{?" and "}"
     const subline = regexResult[0].slice(2, -1);
+    if (DEBUG) console.debug(`call multiReplace with '${subline}'`);
 
     // we have to use FOUND var because of two and more paths in one string
     const res = multiReplace(obj, subline, opt);
 
     // if replace result is empty - replace FULL string
     if (res.found === 0) {
+      if (DEBUG) console.debug(`smartReplace: not found, replacing '${regexResult[0]}' with empty`);
       out = out.replace(regexResult[0], '');
+      if (DEBUG) console.debug(`smartReplace: out='${out}'`);
     }
     else {
+      if (DEBUG) console.debug(`smartReplace: found = ${res.found}, replacing '${regexResult[0]}' with '${res.str}'`);
       // apply replace
       out = out.replace(regexResult[0], res.str);
+      if (DEBUG) console.debug(`smartReplace: out='${out}'`);
     }
 
     // recursive
-    smartReplace(obj, out, opt);
+    if (out.match(REG_FULL)) {
+      if (DEBUG) console.debug(`calling recursive smartReplace with ${out}'`);
+      out = smartReplace(obj, out, opt);
+    }
   }
 
-  // we have no smart samples... let's change simples
-
-  const res = multiReplace(obj, out, opt);
-
-  out = res.str;
-  out = out.replace(/ +/g, ' ');
-  out = out.replace(/\n{3,}/gm, '\n\n');
-
-  if (DEBUG) console.debug(`smartReplace res: ${out}`);
+  if (DEBUG) console.debug(`finally smartReplace res: ${out}`);
   return out;
 }
 
 // ==============================================
 function multiReplace(object, strPath, opt) {
-  if (DEBUG) console.debug(`multiReplace '${strPath}'`);
+  if (DEBUG) console.log(`multiReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0 };
   let subres = {};
@@ -139,11 +145,11 @@ function multiReplace(object, strPath, opt) {
   res.found += subres.found;
   res.str = subres.str;
 
-  if (DEBUG) console.debug(`multiReplace found: ${res.found}`);
+  if (DEBUG) console.log(`multiReplace found: ${res.found}`);
 
   if (res.found > 0) subres = multiReplace(object, res.str, opt);
   res.found += subres.found;
-  res.str = subres.str;
+  res.str = cleanEmpties(subres.str);
 
   return res;
 }
@@ -231,7 +237,7 @@ function pathReplace(object, strPath, opt) {
   const regexResult = REG_MINI.exec(strPath);
   if (!regexResult) return { str: strPath, found: 0 };
 
-  if (DEBUG) console.debug(`pathReplace ${tools.textify(regexResult)}`);
+  if (DEBUG) console.log(`pathReplace ${tools.textify(regexResult)}`);
 
   const strfull = regexResult[0];
   const sregex = regexResult[1];
@@ -312,6 +318,14 @@ function pathReplace(object, strPath, opt) {
 
   if (DEBUG) console.debug(`pathReplace res: ${tools.textify({ str, found })}`);
   return { str, found };
+}
+// ==============================================
+function cleanEmpties(strPath) {
+  if (!strPath || typeof strPath !== 'string') return strPath;
+  let out = strPath;
+  out = out.replace(/ +/g, ' ');
+  out = out.replace(/\n{3,}/gm, '\n\n');
+  return out;
 }
 
 module.exports = objectReplace;
