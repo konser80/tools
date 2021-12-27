@@ -14,6 +14,8 @@ function textify(obj, _opt) {
 
   if (obj === undefined) res = 'undefined';
   if (obj === null) res = 'null';
+  if (obj === true) res = 'true';
+  if (obj === false) res = 'false';
   if (typeof obj !== 'object') return res;
 
   // date?
