@@ -99,13 +99,13 @@ function smartReplace(obj, strPath, opt) {
     const res = multiReplace(obj, subline, opt);
 
     // if replace result is empty - replace FULL string
-    if (res.found === 0) {
+    if (res.replaced === 0) {
       if (DEBUG) console.debug(`smartReplace: not found, replacing '${regexResult[0]}' with empty`);
       out = out.replace(regexResult[0], '');
       if (DEBUG) console.debug(`smartReplace: out='${out}'`);
     }
     else {
-      if (DEBUG) console.debug(`smartReplace: found = ${res.found}, replacing '${regexResult[0]}' with '${res.str}'`);
+      if (DEBUG) console.debug(`smartReplace: found = ${res.replaced}, replacing '${regexResult[0]}' with '${res.str}'`);
       // apply replace
       out = out.replace(regexResult[0], res.str);
       if (DEBUG) console.debug(`smartReplace: out='${out}'`);
@@ -126,60 +126,71 @@ function smartReplace(obj, strPath, opt) {
 function multiReplace(object, strPath, opt) {
   if (DEBUG) console.log(`multiReplace '${strPath}'`);
 
-  const res = { str: strPath, found: 0 };
+  const res = { str: strPath, found: 0, replaced: 0 };
   let subres = {};
 
   subres = dateDiffReplace(object, strPath, opt);
   res.found += subres.found;
+  res.replaced += subres.replaced;
   res.str = subres.str;
 
   subres = randomReplace(res.str);
   res.found += subres.found;
+  res.replaced += subres.replaced;
   res.str = subres.str;
 
   subres = uuidReplace(res.str);
   res.found += subres.found;
+  res.replaced += subres.replaced;
   res.str = subres.str;
 
   subres = pathReplace(object, res.str, opt);
   res.found += subres.found;
+  res.replaced += subres.replaced;
   res.str = subres.str;
 
   if (DEBUG) console.log(`multiReplace found: ${res.found}`);
 
   if (res.found > 0) subres = multiReplace(object, res.str, opt);
   res.found += subres.found;
+  res.replaced += subres.replaced;
   res.str = cleanEmpties(subres.str);
 
+  if (DEBUG) console.log(`multiReplace returning res: ${tools.textify(res)}`);
   return res;
 }
 // ==============================================
 function uuidReplace(strPath) {
   if (DEBUG) console.debug(`try uuidReplace ${strPath}`);
 
+  const res = { str: strPath, found: 0, replaced: 0 };
   const REG_UUID = /\{uuid\.?(v\d)?}/gi;
   const regexResult = REG_UUID.exec(strPath);
-  if (!regexResult) return { str: strPath, found: 0 };
+  if (!regexResult) return res;
 
+  res.found = 1;
   if (DEBUG) console.debug(`uuidReplace ${strPath}`);
 
   const strfull = regexResult[0];
   const ver = regexResult[1] || 'v4';
 
   const subres = uuid[ver]();
-  const str = strPath.replace(strfull, subres);
+  res.str = strPath.replace(strfull, subres);
+  if (subres !== '') res.replaced = 1;
 
-  if (DEBUG) console.debug(`uuidReplace str: ${str}`);
-  return { str, found: 1 };
+  if (DEBUG) console.debug(`uuidReplace res: ${tools.textify(res)}`);
+  return res;
 }
 // ==============================================
 function randomReplace(strPath) {
   if (DEBUG) console.debug(`try randomReplace ${strPath}`);
 
+  const res = { str: strPath, found: 0, replaced: 0 };
   const REG_RAND = /\{rnd\.(\d+)\}/gi;
   const regexResult = REG_RAND.exec(strPath);
-  if (!regexResult) return { str: strPath, found: 0 };
+  if (!regexResult) return res;
 
+  res.found = 1;
   if (DEBUG) console.debug(`randomReplace ${strPath}`);
 
   const strfull = regexResult[0];
@@ -189,19 +200,22 @@ function randomReplace(strPath) {
   const rnd = Math.round(Math.random() * inumber);
   const srnd = rnd.toString().padStart(snumber.length, '0');
 
-  const str = strPath.replace(strfull, srnd);
+  res.str = strPath.replace(strfull, srnd);
+  if (srnd !== '') res.replaced = 1;
 
-  if (DEBUG) console.debug(`randomReplace str: ${str}`);
-  return { str, found: 1 };
+  if (DEBUG) console.debug(`randomReplace str: ${tools.textify(res)}`);
+  return res;
 }
 // ==============================================
 function dateDiffReplace(obj, strPath, opt) {
   if (DEBUG) console.debug(`try dateDiffReplace ${strPath}`);
 
+  const res = { str: strPath, found: 0, replaced: 0 };
   const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
   const regexResult = REG_DIFF.exec(strPath);
-  if (!regexResult) return { str: strPath, found: 0 };
+  if (!regexResult) return res;
 
+  res.found = 1;
   if (DEBUG) console.debug(`dateDiffReplace ${strPath}`);
 
   const strfull = regexResult[0];
@@ -224,19 +238,22 @@ function dateDiffReplace(obj, strPath, opt) {
     if (DEBUG) console.log(`diff ${diff}`);
   }
 
-  const strNew = strPath.replace(strfull, diff);
+  res.str = strPath.replace(strfull, diff);
+  if (diff !== '') res.replaced = 1;
 
-  if (DEBUG) console.debug(`dateDiffReplace str: ${strNew}`);
-  return { str: strNew, found: 1 };
+  if (DEBUG) console.debug(`dateDiffReplace str: ${tools.textify(res)}`);
+  return res;
 }
 // ==============================================
 function pathReplace(object, strPath, opt) {
   if (DEBUG) console.debug(`try pathReplace '${strPath}'`);
 
+  const res = { str: strPath, found: 0, replaced: 0 };
   const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
   const regexResult = REG_MINI.exec(strPath);
-  if (!regexResult) return { str: strPath, found: 0 };
+  if (!regexResult) return res;
 
+  res.found = 1;
   if (DEBUG) console.log(`pathReplace ${tools.textify(regexResult)}`);
 
   const strfull = regexResult[0];
@@ -310,14 +327,11 @@ function pathReplace(object, strPath, opt) {
     }
   }
 
-  let found = 0;
+  res.str = strPath.replace(strfull, replaceText);
+  if (replaceText !== '' && replaceText !== null) res.replaced = 1;
 
-  if (replaceText !== '' && replaceText !== null) found = 1;
-
-  const str = strPath.replace(strfull, replaceText);
-
-  if (DEBUG) console.debug(`pathReplace res: ${tools.textify({ str, found })}`);
-  return { str, found };
+  if (DEBUG) console.debug(`pathReplace res: ${tools.textify(res)}`);
+  return res;
 }
 // ==============================================
 function cleanEmpties(strPath) {
