@@ -141,25 +141,18 @@ function formatLog(message, level, _opt, datetime) {
 // ==============================================
 function resetColors(src) {
   if (!src || typeof src !== 'string') return src.toString();
-  const res = src.replace(/\u001b\[\d{1,2}m/g, '');
+  const res = src.replace(/\u001b\[\d{1,2}m/g, ''); // eslint-disable-line
   return res;
 }
 
 // ==============================================
 function getTimeDifference(now) {
 
-  let sdiff = '';
-
-  // calculate time difference
-  if (previous === null) return sdiff;
+  if (previous === null) return '';
 
   const diff = now.diff(previous);
+  const sdiff = ` +${tools.timetotf(diff)}`;
 
-  if (diff < 1000) sdiff = ` +${diff}ms`;
-  if (diff >= 1000 && diff < 60000) sdiff = ` +${(diff / 1000).toFixed(1)}s`;
-  if (diff >= 60000 && diff < 3600000) sdiff = ` +${(diff / 60000).toFixed(1)}m`;
-  if (diff >= 3600000) sdiff = ` +${(diff / 3600000).toFixed(1)}h`;
-  // sdiff = sdiff.green.dim;
   return sdiff;
 }
 

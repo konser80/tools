@@ -3,7 +3,11 @@ module.exports.logger = require('./logger').logger;
 module.exports.val = require('./value');
 module.exports.combine = require('./combine');
 module.exports.replace = require('./pathreplace');
-module.exports.tftotime = require('./timeframes');
+
+// timeframes
+module.exports.tftotime = require('./timeframes').tftotime;
+module.exports.timetotf = require('./timeframes').timetotf;
+module.exports.timetotf2 = require('./timeframes').timetotf2;
 
 module.exports.randomtext = require('./randomtext').randomtext;
 

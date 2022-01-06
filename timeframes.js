@@ -1,5 +1,11 @@
 const dayjs = require('dayjs');
 
+const SEC = 1000;
+const MIN = 60*SEC;
+const HOUR = 60*MIN;
+const DAY = 24*HOUR;
+const YEAR = 365.25*DAY;
+
 const REGEX_TF = /([\d.]{1,3}[smhdw])/g;
 
 // ==============================================
@@ -19,7 +25,6 @@ function timeframeToUnixTime(s) {
 
   return val;
 }
-
 // ==============================================
 function decodeTimeframe(string) {
 
@@ -36,4 +41,41 @@ function decodeTimeframe(string) {
   return time;
 }
 
-module.exports = timeframeToUnixTime;
+// ==============================================
+function timetoTimeFrame(diff) {
+
+  if (diff < SEC) return `${diff}ms`;
+  if (diff < MIN) return `${(diff / SEC).toFixed(1)}s`;
+  if (diff < HOUR) return `${(diff / MIN).toFixed(1)}m`;
+  if (diff < 4*DAY) return `${(diff / HOUR).toFixed(1)}h`;
+  return `${(diff / DAY).toFixed(1)}d`;
+}
+// ==============================================
+function timetoTimeFrame2(_diff) {
+
+  let res = '';
+  let diff = _diff;
+
+  ({ res, diff } = calcTimeDiff(YEAR, 'y', diff, res));
+  ({ res, diff } = calcTimeDiff(DAY, 'd', diff, res));
+  ({ res, diff } = calcTimeDiff(HOUR, 'h', diff, res));
+  ({ res, diff } = calcTimeDiff(MIN, 'm', diff, res));
+  ({ res, diff } = calcTimeDiff(SEC, 's', diff, res));
+  if (res === '') ({ res, diff } = calcTimeDiff(1, 'ms', diff, res));
+  if (res === '') res = '0ms';
+  return res;
+}
+// ==============================================
+function calcTimeDiff(tf, char, diff, string) {
+  const res = { res: string };
+
+  const num = Math.floor(diff / tf);
+  res.diff = diff - num * tf;
+  if (num > 0) res.res = `${string}${num}${char}`;
+  return res;
+}
+
+
+module.exports.tftotime = timeframeToUnixTime;
+module.exports.timetotf = timetoTimeFrame;
+module.exports.timetotf2 = timetoTimeFrame2;
