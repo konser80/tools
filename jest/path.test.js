@@ -43,7 +43,8 @@ const obj = {
   user,
   date,
   arr1,
-  arr2
+  arr2,
+  _key: 15
 };
 
 
@@ -53,6 +54,9 @@ test('getSimpleData', () => {
   expect(tools.replace(obj, '_{user._lodash}_')).toEqual('_1_');
   expect(tools.replace(obj, '_{user.age}_')).toEqual('_40_');
   expect(tools.replace(obj, '_{user.ИНН}_')).toEqual('_inn_');
+
+  // root
+  expect(tools.replace(obj, '_{_key}_')).toEqual('_15_');
 
   // bool
   expect(tools.replace(obj, '_{user.true}_')).toEqual('_true_');
