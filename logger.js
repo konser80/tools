@@ -1,15 +1,15 @@
 const log4js = require('log4js');
 const dayjs = require('dayjs');
-const tools = require('./index');
+const { timetotf } = require('./timeframes');
+const { textify } = require('./textify');
 require('colors');
 
 const REGEX_STACK = /at (.+?) \(.+?([^/]+?):(\d+):(\d+)\)/;
-const LOGLEVEL = 'debug';
 let previous = null;
 const cache = {};
 
 // ==============================================
-function configureLogger(minlevel = LOGLEVEL) {
+function configureLogger(minlevel = 'debug') {
 
   const layout = { type: 'pretty' };
   log4js.addLayout('pretty', () => formatLog4JS);
@@ -20,9 +20,30 @@ function configureLogger(minlevel = LOGLEVEL) {
     appenders: {
       console: { layout, type: 'stdout' },
 
-      tracefile: { layout, type: 'dateFile', filename: 'logs/trace.log', pattern: 'old/yyyy-MM/yyyy-MM-dd-hh0000', keepFileExt: true, daysToKeep: 7 },
-      debugfile: { layout, type: 'dateFile', filename: 'logs/debug.log', pattern: 'old/yyyy-MM/yyyy-MM-dd', keepFileExt: true, daysToKeep: 30 },
-      errorfile: { layout, type: 'dateFile', filename: 'logs/error.log', pattern: 'old/yyyy-MM', keepFileExt: true },
+      tracefile: {
+        layout,
+        type: 'dateFile',
+        filename: 'logs/trace.log',
+        pattern: 'old/yyyy-MM/yyyy-MM-dd-hh0000',
+        keepFileExt: true,
+        // numBackups: 5
+      },
+
+      debugfile: {
+        layout,
+        type: 'dateFile',
+        filename: 'logs/debug.log',
+        pattern: 'old/yyyy-MM/yyyy-MM-dd',
+        keepFileExt: true
+      },
+
+      errorfile: {
+        layout,
+        type: 'dateFile',
+        filename: 'logs/error.log',
+        pattern: 'old/yyyy-MM',
+        keepFileExt: true
+      },
 
       show: { type: 'logLevelFilter', appender: 'console', level: minlevel },
       savetrace: { type: 'logLevelFilter', appender: 'tracefile', level: 'trace' },
@@ -92,7 +113,7 @@ function formatLog(message, level, _opt, datetime) {
   };
 
   // message
-  log.data = tools.textify(log.data, { colors: true });
+  log.data = textify(log.data, { colors: true });
 
   // level
   if (level === 'warn') log.level = `${'[WARN]'.yellow.inverse} `;
@@ -151,7 +172,7 @@ function getTimeDifference(now) {
   if (previous === null) return '';
 
   const diff = now.diff(previous);
-  const sdiff = ` +${tools.timetotf(diff)}`;
+  const sdiff = ` +${timetotf(diff)}`;
 
   return sdiff;
 }

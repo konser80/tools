@@ -1,4 +1,9 @@
-module.exports.logger = require('./logger').logger;
+const loggerModule = require('./logger');
+
+// configureConsole
+loggerModule.init();
+
+module.exports.logger = loggerModule.logger;
 
 module.exports.val = require('./value');
 module.exports.combine = require('./combine');
@@ -26,6 +31,3 @@ module.exports.textify = require('./textify').textify;
 
 // array.forEachAsync
 require('./async').init();
-
-// configureConsole
-require('./logger').init();

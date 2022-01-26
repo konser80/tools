@@ -1,4 +1,3 @@
-const log = require('./index').logger();
 
 // ==============================================
 // extended JSON.parse
@@ -12,11 +11,11 @@ function jparse(src) {
     res = JSON.parse(src);
   }
   catch (e) {
-    log.error(`[-] json.parse: ${e.message}`, { err: e });
+    console.error(`[-] json.parse: ${e.message}`, { err: e });
 
     const errText = highlightParseError(e, src);
-    if (errText) log.info(errText);
-    log.trace(src);
+    if (errText) console.info(errText);
+    console.trace(src);
     return false;
   }
   return res;
@@ -36,7 +35,7 @@ function highlightParseError(e, string) {
     .replace(/\n/g, ' ')
     .replace(/ {2,}/g, ' ')
     .trim();
-  log.info(res);
+  console.info(res);
 }
 
 module.exports.parse = jparse;
