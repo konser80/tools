@@ -6,8 +6,9 @@ const qline = {};
 async function queue(RPS = 10, key = 'main') {
   const pause = Math.ceil(1000/RPS);
 
-  qline[key] = qline[key] || dayjs();
+  qline[key] = qline[key] || dayjs().add(-pause, 'ms');
   const diff = dayjs().diff(qline[key], 'ms');
+  // console.log(`diff ${diff} pause ${pause}`);
 
   // do it now
   if (diff > pause) {
