@@ -44,7 +44,8 @@ const obj = {
   date,
   arr1,
   arr2,
-  _key: 15
+  _key: 15,
+  i1: 'i1',
 };
 
 
@@ -57,6 +58,7 @@ test('getSimpleData', () => {
 
   // root
   expect(tools.replace(obj, '_{_key}_')).toEqual('_15_');
+  expect(tools.replace(obj, '_{i1}_')).toEqual('_i1_');
 
   // bool
   expect(tools.replace(obj, '_{user.true}_')).toEqual('_true_');

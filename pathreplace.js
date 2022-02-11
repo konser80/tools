@@ -249,7 +249,8 @@ function pathReplace(object, strPath, opt) {
   if (DEBUG) console.debug(`try pathReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  const REG_MINI = /\{(\/.*?\/)?([a-zа-я0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
+  const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
+  // const REG_MINI = /\{(\/.*?\/)?([a-zа-я0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
   const regexResult = REG_MINI.exec(strPath);
   if (!regexResult) return res;
 
