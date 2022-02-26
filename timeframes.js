@@ -6,7 +6,7 @@ const HOUR = 60*MIN;
 const DAY = 24*HOUR;
 const YEAR = 365.25*DAY;
 
-const REGEX_TF = /([\d.]{1,3}[smhdw])/g;
+const REGEX_TF = /([\d.]{1,3}[smhdwM])/g;
 
 // ==============================================
 function timeframeToUnixTime(s) {
@@ -36,6 +36,7 @@ function decodeTimeframe(string) {
   if (string.indexOf('h') !== -1) tf = 'hour';
   if (string.indexOf('d') !== -1) tf = 'day'; // float doesn't work on days
   if (string.indexOf('w') !== -1) tf = 'week'; // float doesn't work on weeks
+  if (string.indexOf('M') !== -1) tf = 'month'; // float doesn't work on months
 
   const time = dayjs(0).add(int, tf).valueOf();
   return time;
