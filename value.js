@@ -2,7 +2,7 @@ const validator = require('validator');
 
 // ==============================================
 function val(x, def) {
-  
+
   let res = x;
   if (typeof x === 'string') res = res.trim();
 
@@ -13,7 +13,7 @@ function val(x, def) {
 
   // is number?
   // if (parseFloat(x).toString() === x) res = parseFloat(x);
-  if (typeof x === 'string' && validator.isFloat(x)) res = parseFloat(x);
+  if (typeof x === 'string' && x[0] !== '+' && validator.isFloat(x)) res = parseFloat(x);
 
   if ((res === undefined || res === null) && def !== undefined) res = def;
   return res;
