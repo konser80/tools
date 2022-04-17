@@ -36,6 +36,7 @@ function objectReplace(obj, somedata, options) {
     crlf: undefined,
     array: undefined,
     date: true,
+    dateformat: 'YYYY-MM-DD HH:mm:ss',
     tz: undefined,
   },
   ...options };
@@ -276,6 +277,16 @@ function pathReplace(object, strPath, opt) {
     replaceText = replaceText.replace(/\n/g, opt.crlf);
   }
 
+  if (validate.isDateTime(replaceText) && opt.date) {
+    try {
+      replaceText = dayjs(replaceText).tz(opt.tz).format(opt.dateformat);
+    }
+    catch (e) {
+      console.error(`[-] ${e.message}`);
+      replaceText = dayjs(replaceText).tz().format('YYYY-MM-DD HH:mm:ss');
+    }
+  }
+
   if (typeof replaceText === 'string' && opt.escape !== undefined && typeof opt.escape === 'string') {
     let newres = '';
     for (let i = 0; i < replaceText.length; i += 1) {
@@ -315,16 +326,6 @@ function pathReplace(object, strPath, opt) {
     catch (e) {
       console.error(`[-] tools.pathreplace: ${e.message}`);
       console.log(sregex.slice(1, -1));
-    }
-  }
-
-  if (validate.isDateTime(replaceText) && opt.date) {
-    try {
-      replaceText = dayjs(replaceText).tz(opt.tz).format('YYYY-MM-DD HH:mm:ss');
-    }
-    catch (e) {
-      console.error(`[-] ${e.message}`);
-      replaceText = dayjs(replaceText).tz().format('YYYY-MM-DD HH:mm:ss');
     }
   }
 
