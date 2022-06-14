@@ -212,7 +212,8 @@ function dateDiffReplace(obj, strPath, opt) {
   if (DEBUG) console.debug(`try dateDiffReplace ${strPath}`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
+  const REG_DIFF = /\{([a-zа-я0-9_.[\]]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
+  // const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
   const regexResult = REG_DIFF.exec(strPath);
   if (!regexResult) return res;
 
@@ -222,16 +223,17 @@ function dateDiffReplace(obj, strPath, opt) {
   const strfull = regexResult[0];
   const objpath = regexResult[1];
   const afterbefore = regexResult[2];
-  const interval = regexResult[3];
+  const interval = regexResult[3].replace(/s$/, ''); // remove last 's'
 
   const { str } = pathReplace(obj, `{${objpath}}`, opt);
 
   let diff;
   if (dayjs(str).isValid()) {
 
-    const date2 = dayjs(str);
-    if (afterbefore === 'after') diff = dayjs().diff(date2, interval);
-    if (afterbefore === 'before') diff = date2.diff(dayjs(), interval);
+    if (DEBUG) console.log(`using tz: ${opt.tz}`);
+    const date2 = dayjs.tz(str, opt.tz);
+    if (afterbefore === 'after') diff = dayjs().tz(opt.tz).diff(date2, interval);
+    if (afterbefore === 'before') diff = date2.tz(opt.tz).diff(dayjs(), interval);
     if (DEBUG) console.log(`diff ${diff}`);
   }
   else {
