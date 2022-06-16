@@ -29,6 +29,11 @@ function textify(obj, _opt) {
   if (opt.crlf === false) {
     res = res.replace(/\n/g, ' ').replace(/ {2,}/g, ' ');
   }
+
+  if (opt.limit) {
+    res = res.slice(0, opt.limit);
+  }
+
   return res;
 }
 
