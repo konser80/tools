@@ -28,6 +28,7 @@ module.exports.isdatetime = validate.isDateTime;
 module.exports.jparse = require('./jparse').parse;
 
 module.exports.textify = require('./textify').textify;
+module.exports.typeof = require('./textify').typeof;
 
 // array.forEachAsync
 require('./async').init();
