@@ -130,25 +130,33 @@ function multiReplace(object, strPath, opt) {
   const res = { str: strPath, found: 0, replaced: 0 };
   let subres = {};
 
-  subres = dateDiffReplace(object, strPath, opt);
-  res.found += subres.found;
-  res.replaced += subres.replaced;
-  res.str = subres.str;
+  do {
+    subres = dateDiffReplace(object, res.str, opt);
+    res.found += subres.found;
+    res.replaced += subres.replaced;
+    res.str = subres.str;
+  } while (subres.found > 0);
 
-  subres = randomReplace(res.str);
-  res.found += subres.found;
-  res.replaced += subres.replaced;
-  res.str = subres.str;
+  do {
+    subres = randomReplace(res.str);
+    res.found += subres.found;
+    res.replaced += subres.replaced;
+    res.str = subres.str;
+  } while (subres.found > 0);
 
-  subres = uuidReplace(res.str);
-  res.found += subres.found;
-  res.replaced += subres.replaced;
-  res.str = subres.str;
+  do {
+    subres = uuidReplace(res.str);
+    res.found += subres.found;
+    res.replaced += subres.replaced;
+    res.str = subres.str;
+  } while (subres.found > 0);
 
-  subres = pathReplace(object, res.str, opt);
-  res.found += subres.found;
-  res.replaced += subres.replaced;
-  res.str = subres.str;
+  do {
+    subres = pathReplace(object, res.str, opt);
+    res.found += subres.found;
+    res.replaced += subres.replaced;
+    res.str = subres.str;
+  } while (subres.found > 0);
 
   if (DEBUG) console.log(`multiReplace found: ${res.found}`);
 
@@ -209,7 +217,7 @@ function randomReplace(strPath) {
 }
 // ==============================================
 function dateDiffReplace(obj, strPath, opt) {
-  if (DEBUG) console.debug(`try dateDiffReplace ${strPath}`);
+  if (DEBUG) console.debug(`try dateDiffReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
   const REG_DIFF = /\{([a-zа-я0-9_.[\]]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
@@ -218,7 +226,7 @@ function dateDiffReplace(obj, strPath, opt) {
   if (!regexResult) return res;
 
   res.found = 1;
-  if (DEBUG) console.debug(`dateDiffReplace ${strPath}`);
+  if (DEBUG) console.debug(`dateDiffReplace '${strPath}'`);
 
   const strfull = regexResult[0];
   const objpath = regexResult[1];
@@ -244,7 +252,7 @@ function dateDiffReplace(obj, strPath, opt) {
   res.str = strPath.replace(strfull, diff);
   if (diff !== '') res.replaced = 1;
 
-  if (DEBUG) console.debug(`dateDiffReplace str: ${tools.textify(res)}`);
+  if (DEBUG) console.debug(`dateDiffReplace str: '${tools.textify(res)}'`);
   return res;
 }
 // ==============================================
