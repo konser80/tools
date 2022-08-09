@@ -6,7 +6,7 @@ const HOUR = 60*MIN;
 const DAY = 24*HOUR;
 const YEAR = 365.25*DAY;
 
-const REGEX_TF = /(\d+(.\d+)?[smhdwM])/g;
+const REGEX_TF = /(\d+(\.\d+)?[smhdwM])/g;
 // const REGEX_TF = /([\d.]{1,3}[smhdwM])/g;
 
 // ==============================================
