@@ -46,6 +46,7 @@ function configureLogger(minlevel = 'debug') {
       },
 
       show: { type: 'logLevelFilter', appender: 'console', level: minlevel },
+
       savetrace: { type: 'logLevelFilter', appender: 'tracefile', level: 'trace' },
       savedebug: { type: 'logLevelFilter', appender: 'debugfile', level: 'debug' },
       saveerror: { type: 'logLevelFilter', appender: 'errorfile', level: 'warn' },
@@ -56,6 +57,11 @@ function configureLogger(minlevel = 'debug') {
   });
 
   const logger = log4js.getLogger();
+  console.log = (msg) => logger.trace(msg);
+  console.info = (msg) => logger.debug(msg);
+  console.warn = (msg) => logger.warn(msg);
+  console.error = (msg) => logger.error(msg);
+
   logger.shutdown = log4js.shutdown;
   return logger;
 }
