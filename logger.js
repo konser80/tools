@@ -151,7 +151,7 @@ function formatLog(message, level, _opt, datetime) {
   previous = now;
 
   // multiline: check type because it could be 'true/false' values
-  if (typeof log.data === 'string' && opt.time && log.data.indexOf('\n') !== -1) log.data = `\n${log.data}`;
+  if (level === 'trace' && typeof log.data === 'string' && opt.time && log.data.indexOf('\n') !== -1) log.data = `\n${log.data}`;
 
   // colors
   if (level === 'trace' || level === 'silly') {
