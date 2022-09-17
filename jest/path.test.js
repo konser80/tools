@@ -24,7 +24,12 @@ const user = {
   empty: '',
   'ИНН': 'inn',
   codes: ['code1', 'code2', 'code3'],
-  nums: [12, 14, 16, 18, 20]
+  nums: [12, 14, 16, 18, 20],
+  products: {
+    main: {
+      start: '2024-09-16 00:00:00'
+    }
+  }
 };
 const date = {
   day: 11,
@@ -44,6 +49,7 @@ const obj = {
   date,
   arr1,
   arr2,
+  invoice: { name: 'main' },
   _key: 15,
   i1: 'i1',
 };
@@ -107,6 +113,14 @@ test('regex', () => {
   // null result of subregex
   expect(tools.replace(obj, '_{/and ([4-9]+) num/msg.text}!')).toEqual('_!');
 
+});
+
+test('timeStrings', () => {
+  expect(tools.replace(obj, '{user.products.main.start}')).toEqual('2024-09-16 00:00:00');
+  expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual('2024-09-16 00:00:00');
+
+  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('23');
+  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('23');
 });
 
 test('complexStrings', () => {

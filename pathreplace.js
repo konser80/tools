@@ -130,6 +130,8 @@ function multiReplace(object, strPath, opt) {
   const res = { str: strPath, found: 0, replaced: 0 };
   let subres = {};
 
+
+  // what to do if dateDiff contains pathReplace?
   do {
     subres = dateDiffReplace(object, res.str, opt);
     res.found += subres.found;
@@ -220,7 +222,7 @@ function dateDiffReplace(obj, strPath, opt) {
   if (DEBUG) console.debug(`try dateDiffReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  const REG_DIFF = /\{([a-zа-я0-9_.[\]]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
+  const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
   // const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
   const regexResult = REG_DIFF.exec(strPath);
   if (!regexResult) return res;
@@ -233,7 +235,19 @@ function dateDiffReplace(obj, strPath, opt) {
   const afterbefore = regexResult[2];
   const interval = regexResult[3].replace(/s$/, ''); // remove last 's'
 
-  const { str } = pathReplace(obj, `{${objpath}}`, opt);
+  if (DEBUG) console.debug(`call pathReplace with '{${objpath}}'`);
+  // we need this because of {user.products.{invoice.name}.start.before.minute}
+  const result = { str: `{${objpath}}`, found: 0, replaced: 0 };
+  let subres = {};
+  do {
+    subres = pathReplace(obj, result.str, opt);
+    result.found += subres.found;
+    result.replaced += subres.replaced;
+    result.str = subres.str;
+  } while (subres.found > 0);
+
+  const { str } = result;
+  if (DEBUG) console.debug(`=> from pathReplace is '${str}'`);
 
   let diff;
   if (dayjs(str).isValid()) {
