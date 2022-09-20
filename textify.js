@@ -12,26 +12,30 @@ function textify(obj, _opt) {
   },
   ..._opt };
 
-  if (obj === undefined) res = 'undefined';
-  if (obj === null) res = 'null';
-  if (obj === true) res = 'true';
-  if (obj === false) res = 'false';
-  if (typeof obj !== 'object') return res;
+  if (obj === null) return 'null';
+  if (obj === undefined) return 'undefined';
+  if (typeof obj === 'boolean') return obj.toString();
+  if (typeof obj === 'number') return obj.toString();
+  // if (typeof obj !== 'object') return res;
 
   // date?
-  if (isDate(obj)) {
-    res = dayjs(obj).format('YYYY-MM-DD HH:mm:ss.SSS');
-    return res;
+  if (typeof obj === 'object' && isDate(obj)) {
+    return dayjs(obj).format('YYYY-MM-DD HH:mm:ss.SSS');
   }
+
 
   // some other object?
-  res = util.inspect(obj, { colors: opt.colors, depth: null, showHidden: false });
-  if (opt.crlf === false) {
-    res = res.replace(/\n/g, ' ').replace(/ {2,}/g, ' ');
+  if (typeof obj !== 'string') {
+    res = util.inspect(obj, { colors: opt.colors, depth: null, showHidden: false });
+    if (opt.crlf === false) {
+      res = res.replace(/\n/g, ' ').replace(/ {2,}/g, ' ');
+    }
   }
 
-  if (opt.limit) {
+  // limit chars
+  if ((opt.limit) && res.length > opt.limit) {
     res = res.slice(0, opt.limit);
+    res += '...';
   }
 
   return res;
