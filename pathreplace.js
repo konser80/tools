@@ -240,7 +240,9 @@ function dateDiffReplace(obj, strPath, opt) {
   const result = { str: `{${objpath}}`, found: 0, replaced: 0 };
   let subres = {};
   do {
-    subres = pathReplace(obj, result.str, opt);
+    // replace datetime to universal format without timezone - do not use opt so
+    subres = pathReplace(obj, result.str, { tz: opt.tz }); // do NOT use opt because of dateformat
+
     result.found += subres.found;
     result.replaced += subres.replaced;
     result.str = subres.str;
@@ -251,9 +253,21 @@ function dateDiffReplace(obj, strPath, opt) {
 
   let diff;
   if (dayjs(str).isValid()) {
-
     if (DEBUG) console.log(`using tz: ${opt.tz}`);
-    const date2 = dayjs.tz(str, opt.tz);
+
+    // if our string contains tz like +03:00 or ...000Z, so do not apply TZ parsing
+    let date2;
+    const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
+    if (str.match(REGEX_TZ)) {
+      date2 = dayjs(str);
+    }
+    else {
+      date2 = dayjs.tz(str, opt.tz);
+    }
+
+    if (DEBUG) console.log(date2.toString());
+    // if (DEBUG) console.log(dayjs());
+
     if (afterbefore === 'after') diff = dayjs().tz(opt.tz).diff(date2, interval);
     if (afterbefore === 'before') diff = date2.tz(opt.tz).diff(dayjs(), interval);
     if (DEBUG) console.log(`diff ${diff}`);

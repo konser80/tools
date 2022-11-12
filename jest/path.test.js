@@ -119,8 +119,8 @@ test('timeStrings', () => {
   expect(tools.replace(obj, '{user.products.main.start}')).toEqual('2024-09-16 00:00:00');
   expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual('2024-09-16 00:00:00');
 
-  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('23');
-  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('23');
+  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('22');
+  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('22');
 });
 
 test('complexStrings', () => {
