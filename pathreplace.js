@@ -346,6 +346,9 @@ function pathReplace(object, strPath, opt) {
   }
   if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
 
+  // fix $& behavior
+  if (typeof replaceText === 'string') replaceText = replaceText.replace(/\$/g, '$$$$');
+
   if (DEBUG) console.debug(`[ ] replaceText (after): '${typeof replaceText}' ${replaceText}`);
 
   // if (opt.str && replaceText === null) replaceText = 'null';
