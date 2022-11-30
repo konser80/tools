@@ -19,6 +19,8 @@ module.exports.randomtext = require('./randomtext').randomtext;
 module.exports.queue = require('./queue').queue;
 module.exports.timeout = require('./queue').timeout;
 
+module.exports.purgeOldFiles = require('./files').purgeOldFiles;
+
 const validate = require('./validate');
 
 module.exports.istime = validate.isTime;
