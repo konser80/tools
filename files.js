@@ -17,11 +17,13 @@ async function removeOldFiles(folder, older) {
   }
   catch (e) {}
 
-  await removeRecursive(earlier, folder);
+  const res = await removeRecursive(earlier, folder);
+  return res;
 }
 // ==============================================
 async function removeRecursive(earlier, folder, sub = '') {
 
+  let flist = [];
   const newRoot = path.join(folder, sub);
   try {
     const list = await fs.readdir(newRoot);
@@ -31,8 +33,11 @@ async function removeRecursive(earlier, folder, sub = '') {
       // this is a folder
       if (!stat.isFile()) {
         const newSub = `${sub}/${fname}`;
-        await removeRecursive(earlier, folder, newSub);
-        await removeEmptyFolder(folder, newSub);
+        const sublist = await removeRecursive(earlier, folder, newSub);
+        flist = flist.concat(sublist);
+
+        const remdir = await removeEmptyFolder(folder, newSub);
+        if (remdir) flist.push(remdir);
         return true;
       }
 
@@ -40,19 +45,21 @@ async function removeRecursive(earlier, folder, sub = '') {
 
       console.debug(`[+] delete file ${sub}/${fname}`, { ms: false });
       await fs.unlink(path.join(newRoot, fname));
+      flist.push(`${sub}/${fname}`);
     });
   }
   catch (err) {
     if (err.code === 'ENOENT') return true;
     console.error(`[-] purgeOldFiles: ${err.message}`, { err });
   }
+  return flist;
 }
 // ==============================================
 async function removeEmptyFolder(folder, sub) {
   const newRoot = path.join(folder, sub);
   try {
     const list = await fs.readdir(newRoot);
-    if (list.length !== 0) return true;
+    if (list.length !== 0) return null;
 
     console.debug(`[+] delete folder ${sub}`, { ms: false });
     await fs.rmdir(newRoot);
@@ -60,7 +67,7 @@ async function removeEmptyFolder(folder, sub) {
   catch (err) {
     console.error(`[-] ${err.message}`, { err });
   }
-  return true;
+  return sub;
 }
 
 module.exports.purgeOldFiles = removeOldFiles;
