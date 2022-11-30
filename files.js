@@ -43,7 +43,7 @@ async function removeRecursive(earlier, folder, sub = '') {
 
       if (stat.mtimeMs > earlier) return false;
 
-      console.debug(`[+] delete file ${sub}/${fname}`, { ms: false });
+      // console.debug(`[+] delete file ${sub}/${fname}`, { ms: false });
       await fs.unlink(path.join(newRoot, fname));
       flist.push(`${sub}/${fname}`);
     });
@@ -61,7 +61,7 @@ async function removeEmptyFolder(folder, sub) {
     const list = await fs.readdir(newRoot);
     if (list.length !== 0) return null;
 
-    console.debug(`[+] delete folder ${sub}`, { ms: false });
+    // console.debug(`[+] delete folder ${sub}`, { ms: false });
     await fs.rmdir(newRoot);
   }
   catch (err) {
