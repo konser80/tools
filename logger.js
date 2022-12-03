@@ -129,7 +129,7 @@ function formatLog(message, level, _opt, datetime) {
   // error?
   if (message instanceof Error || opt.err instanceof Error) {
     const err = (message instanceof Error) ? message : opt.err;
-    const regexResult = err.stack.match(REGEX_STACK);
+    const regexResult = err.stack?.match(REGEX_STACK);
     if (regexResult) {
       log.fname = regexResult[2];
       log.lines = `${regexResult[3]}:${regexResult[4]}`;
