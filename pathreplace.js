@@ -273,7 +273,8 @@ function dateDiffReplace(obj, strPath, opt) {
     if (DEBUG) console.log(`diff ${diff}`);
   }
   else {
-    diff = null;
+    diff = '';
+    // diff = null;
     if (DEBUG) console.log(`diff ${diff}`);
   }
 
