@@ -16,6 +16,7 @@ module.exports.timetotf2 = require('./timeframes').timetotf2;
 
 module.exports.randomtext = require('./randomtext').randomtext;
 
+module.exports.notify = require('./notify').notify;
 module.exports.queue = require('./queue').queue;
 module.exports.timeout = require('./queue').timeout;
 

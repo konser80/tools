@@ -1,12 +1,13 @@
 {
   "name": "tools",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "description": "small useful functions",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "axios": "^1.3.4",
     "colors": "^1.4.0",
     "dayjs": "^1.10.4",
     "lodash": "^4.17.21",
