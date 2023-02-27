@@ -10,7 +10,7 @@ const REGEX_TF = /(\d+(\.\d+)?[smhdwM])/g;
 // const REGEX_TF = /([\d.]{1,3}[smhdwM])/g;
 
 // ==============================================
-function timeframeToUnixTime(s) {
+function timeframeToUnixTime(s, fromDate = dayjs()) {
   if (!s) return 0;
   if (typeof s !== 'string') return s;
 
@@ -21,13 +21,13 @@ function timeframeToUnixTime(s) {
   let reg;
   let val = 0;
   while ((reg = REGEX_TF.exec(s)) !== null) {
-    val += decodeTimeframe(reg[1]);
+    val += decodeTimeframe(reg[1], fromDate);
   }
 
   return val;
 }
 // ==============================================
-function decodeTimeframe(string) {
+function decodeTimeframe(string, fromDate) {
 
   const int = parseFloat(string.replace(/[^0-9.]/g, '')) || 0;
 
@@ -39,7 +39,8 @@ function decodeTimeframe(string) {
   if (string.indexOf('w') !== -1) tf = 'week'; // float doesn't work on weeks
   if (string.indexOf('M') !== -1) tf = 'month'; // float doesn't work on months
 
-  const time = dayjs(0).add(int, tf).valueOf();
+  const now = dayjs(fromDate);
+  const time = now.add(int, tf).valueOf() - now.valueOf();
   return time;
 }
 
