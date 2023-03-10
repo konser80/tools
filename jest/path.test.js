@@ -16,6 +16,7 @@ const user = {
   id: 1234,
   age: 40,
   username: '@somename',
+  'user-name': 'DASH',
   fullname: 'Max',
   _lodash: 1,
   und: undefined,
@@ -60,6 +61,7 @@ test('getSimpleData', () => {
 
   expect(tools.replace(obj, '_{user.id}!')).toEqual('_1234!');
   expect(tools.replace(obj, '_{user._lodash}_')).toEqual('_1_');
+  expect(tools.replace(obj, '_{user.user-name}_')).toEqual('_DASH_');
   expect(tools.replace(obj, '_{user.age}_')).toEqual('_40_');
   expect(tools.replace(obj, '_{user.ИНН}_')).toEqual('_inn_');
   expect(tools.replace(obj, '_{msg.dollar}_')).toEqual('_with $&gt; symbols_');
@@ -121,8 +123,8 @@ test('timeStrings', () => {
   expect(tools.replace(obj, '{user.products.main.start}')).toEqual('2024-09-16 00:00:00');
   expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual('2024-09-16 00:00:00');
 
-  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('21');
-  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('21');
+  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('18');
+  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('18');
 });
 
 test('complexStrings', () => {
