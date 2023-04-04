@@ -9,7 +9,10 @@ let previous = null;
 const cache = {};
 
 // ==============================================
-function configureLogger(minlevel = 'debug') {
+function configureLogger(minlevel = 'debug', opts = {}) {
+
+  let tracePattern = 'yyyy-MM-dd-hh0000';
+  if (opts.hourly === false) tracePattern = 'yyyy-MM-dd';
 
   const layout = { type: 'pretty' };
   log4js.addLayout('pretty', () => formatLog4JS);
@@ -24,7 +27,7 @@ function configureLogger(minlevel = 'debug') {
         layout,
         type: 'dateFile',
         filename: 'logs/trace.log',
-        pattern: 'old/yyyy-MM/yyyy-MM-dd-hh0000',
+        pattern: `old/yyyy-MM/${tracePattern}`,
         keepFileExt: true,
         // numBackups: 5
       },
