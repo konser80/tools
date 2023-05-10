@@ -1,6 +1,6 @@
 {
   "name": "tools",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "small useful functions",
   "main": "index.js",
   "scripts": {
@@ -25,6 +25,11 @@
     "url": "https://github.com/konser80/tools/issues"
   },
   "homepage": "https://github.com/konser80/tools#readme",
+  "jest": {
+   "moduleNameMapper": {
+     "axios": "axios/dist/node/axios.cjs"
+    }
+  },
   "devDependencies": {
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-import": "^2.23.2",

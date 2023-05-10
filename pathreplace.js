@@ -8,11 +8,13 @@ const validate = require('./validate');
 const tools = require('./index');
 
 const DEBUG = false;
+
 // we can't use global regex because of a lastIndex pointer =(
-// const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 // const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
-// const REG_RAND = /\{rnd\.(\d+)\}/gi;
-// const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
+const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
+const REG_RAND = /\{rnd\.(\d+)\}/gi;
+const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
+const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
 
 // example:
 // this user{?, who {user.age} years old,} can do some job
@@ -83,7 +85,7 @@ function smartReplace(obj, strPath, opt) {
   // user{? age {user.age} and name {user.name}},
   let out = strPath;
 
-  const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
+  // const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
   const regexResult = REG_FULL.exec(strPath);
   if (regexResult) {
     // [0] full string
@@ -197,7 +199,7 @@ function randomReplace(strPath) {
   if (DEBUG) console.debug(`try randomReplace ${strPath}`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  const REG_RAND = /\{rnd\.(\d+)\}/gi;
+  // const REG_RAND = /\{rnd\.(\d+)\}/gi;
   const regexResult = REG_RAND.exec(strPath);
   if (!regexResult) return res;
 
@@ -222,7 +224,7 @@ function dateDiffReplace(obj, strPath, opt) {
   if (DEBUG) console.debug(`try dateDiffReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
+
   // const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
   const regexResult = REG_DIFF.exec(strPath);
   if (!regexResult) return res;
@@ -255,21 +257,32 @@ function dateDiffReplace(obj, strPath, opt) {
   if (dayjs(str).isValid()) {
     if (DEBUG) console.log(`using tz: ${opt.tz}`);
 
+    // const t1 = process.hrtime.bigint();
+
     // if our string contains tz like +03:00 or ...000Z, so do not apply TZ parsing
     let date2;
-    const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
-    if (str.match(REGEX_TZ)) {
+    // if (DEBUG) console.debug(`z0: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+    // const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
+    // if (DEBUG) console.debug(`z1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+    if (str.match(REGEX_TZ) || !opt.tz) {
       date2 = dayjs(str);
+      // if (DEBUG) console.debug(`z1.1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
     }
     else {
       date2 = dayjs.tz(str, opt.tz);
+      // if (DEBUG) console.debug(`z1.2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
     }
+    // if (DEBUG) console.debug(`z2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
 
     if (DEBUG) console.log(date2.toString());
     // if (DEBUG) console.log(dayjs());
 
-    if (afterbefore === 'after') diff = dayjs().tz(opt.tz).diff(date2, interval);
-    if (afterbefore === 'before') diff = date2.tz(opt.tz).diff(dayjs(), interval);
+    // if (DEBUG) console.debug(`z3: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+    // if (afterbefore === 'after') diff = dayjs().tz(opt.tz).diff(date2, interval);
+    if (afterbefore === 'after') diff = (opt.tz) ? dayjs().tz(opt.tz).diff(date2, interval) : dayjs().diff(date2, interval);
+    if (afterbefore === 'before') diff = (opt.tz) ? date2.tz(opt.tz).diff(dayjs(), interval) : date2.diff(dayjs(), interval);
+    // if (DEBUG) console.debug(`z4: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+
     if (DEBUG) console.log(`diff ${diff}`);
   }
   else {
@@ -306,6 +319,7 @@ function pathReplace(object, strPath, opt) {
   // get value
   let replaceText = _.get(object, objpath);
   if (DEBUG) console.debug(`[ ] replaceText (before): '${typeof replaceText}' ${tools.textify(replaceText)}`);
+  // const t1 = process.hrtime.bigint();
 
   if (replaceText === '') replaceText = opt.empty;
   if (replaceText === null) replaceText = opt.null;
@@ -313,13 +327,22 @@ function pathReplace(object, strPath, opt) {
   if (replaceText === false) replaceText = opt.false;
   if (replaceText === undefined) replaceText = opt.undefined;
 
+  // if (DEBUG) console.debug(`z1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+
   if (typeof replaceText === 'string' && opt.crlf !== undefined) {
     replaceText = replaceText.replace(/\n/g, opt.crlf);
   }
 
+  // if (DEBUG) console.debug(`z2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+  // if (dayjs(replaceText).isValid() && opt.date) { // do NOT use dayjs validation - check JEST
   if (validate.isDateTime(replaceText) && opt.date) {
     try {
-      replaceText = dayjs(replaceText).tz(opt.tz).format(opt.dateformat);
+      // if (DEBUG) console.debug(`z2.1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+      replaceText = (opt.tz)
+        ? dayjs(replaceText).tz(opt.tz).format(opt.dateformat)
+        : dayjs(replaceText).format(opt.dateformat);
+      // replaceText = dayjs(replaceText).tz(opt.tz).format(opt.dateformat);
+      // if (DEBUG) console.debug(`z2.2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
     }
     catch (e) {
       console.error(`[-] ${e.message}`);
@@ -327,6 +350,7 @@ function pathReplace(object, strPath, opt) {
     }
   }
 
+  // if (DEBUG) console.debug(`z3: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
   if (typeof replaceText === 'string' && opt.escape !== undefined && typeof opt.escape === 'string') {
     let newres = '';
     for (let i = 0; i < replaceText.length; i += 1) {
@@ -342,6 +366,7 @@ function pathReplace(object, strPath, opt) {
     replaceText = newres;
   }
 
+  // if (DEBUG) console.debug(`z4: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
   // of this is an array of simple items, not array of objects
   if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
     replaceText = replaceText.filter(Boolean).join(opt.array);
@@ -349,8 +374,10 @@ function pathReplace(object, strPath, opt) {
   if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
 
   // fix $& behavior
-  if (typeof replaceText === 'string') replaceText = replaceText.replace(/\$/g, '$$$$');
+  // if (DEBUG) console.debug(`z5: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+  if (typeof replaceText === 'string' && replaceText.includes('$')) replaceText = replaceText.replace(/\$/g, '$$$$');
 
+  // if (DEBUG) console.debug(`z6: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
   if (DEBUG) console.debug(`[ ] replaceText (after): '${typeof replaceText}' ${replaceText}`);
 
   // if (opt.str && replaceText === null) replaceText = 'null';
