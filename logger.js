@@ -111,7 +111,7 @@ function formatLog4JS(logEvent) {
 }
 // ==============================================
 function formatLog(message, level, _opt, datetime) {
-  const opt = { ...{ time: true, ms: true, err: null }, ..._opt };
+  const opt = { ...{ time: true, ms: true, err: null, colors: undefined }, ..._opt };
   const log = {
     data: message,
     ms: '',
@@ -157,10 +157,10 @@ function formatLog(message, level, _opt, datetime) {
   if (level === 'trace' && typeof log.data === 'string' && opt.time && log.data.indexOf('\n') !== -1) log.data = `\n${log.data}`;
 
   // colors
-  if (level === 'trace' || level === 'silly') {
+  if ((level === 'trace' || level === 'silly') && (opt.colors !== true)) {
     log.data = resetColors(log.data).blue;
   }
-  if (level === 'debug') {
+  if (level === 'debug' && opt.colors !== true) {
     log.data = resetColors(log.data).grey;
   }
 
