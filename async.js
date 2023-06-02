@@ -19,3 +19,4 @@ function init() {
 /* eslint-enable no-extend-native */
 
 module.exports.init = init;
+module.exports.forEachAsyncFn = forEachAsyncFn;

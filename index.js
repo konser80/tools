@@ -35,3 +35,4 @@ module.exports.typeof = require('./textify').typeof;
 
 // array.forEachAsync
 require('./async').init();
+module.exports.forEachAsyncFn = require('./async').forEachAsyncFn;
