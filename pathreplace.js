@@ -325,7 +325,10 @@ function pathReplace(object, strPath, opt) {
   if (replaceText === null) replaceText = opt.null;
   if (replaceText === true) replaceText = opt.true;
   if (replaceText === false) replaceText = opt.false;
-  if (replaceText === undefined) replaceText = opt.undefined;
+  if (replaceText === undefined) {
+    replaceText = (_.endsWith(objpath, '.length')) ? 0 : opt.undefined;
+  }
+  // if (replaceText === undefined) replaceText = opt.undefined;
 
   // if (DEBUG) console.debug(`z1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
 
