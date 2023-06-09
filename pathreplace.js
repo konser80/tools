@@ -11,7 +11,7 @@ const DEBUG = false;
 
 // we can't use global regex because of a lastIndex pointer =(
 // const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
-const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
+const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
 const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
@@ -81,7 +81,6 @@ function smartReplace(obj, strPath, opt) {
   if (DEBUG) console.debug(`try smartReplace '${strPath}'`);
 
   if (!strPath || typeof strPath !== 'string') return strPath;
-
   // user{? age {user.age} and name {user.name}},
   let out = strPath;
 
