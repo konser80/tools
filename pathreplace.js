@@ -9,11 +9,11 @@ const tools = require('./index');
 
 const DEBUG = false;
 
-// we can't use global regex because of a lastIndex pointer =(
-// const REG_MINI = /\{(\/.*?\/)?([a-z0-9[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
+const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
+const REG_UUID = /\{uuid\.?(v\d)?}/gi;
 const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
 
 // example:
@@ -176,7 +176,7 @@ function uuidReplace(strPath) {
   if (DEBUG) console.debug(`try uuidReplace ${strPath}`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  const REG_UUID = /\{uuid\.?(v\d)?}/gi;
+  REG_UUID.lastIndex = 0;
   const regexResult = REG_UUID.exec(strPath);
   if (!regexResult) return res;
 
@@ -198,8 +198,9 @@ function randomReplace(strPath) {
   if (DEBUG) console.debug(`try randomReplace ${strPath}`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  // const REG_RAND = /\{rnd\.(\d+)\}/gi;
+  REG_RAND.lastIndex = 0; // because of index pointer
   const regexResult = REG_RAND.exec(strPath);
+  // console.debug(regexResult);
   if (!regexResult) return res;
 
   res.found = 1;
@@ -225,6 +226,7 @@ function dateDiffReplace(obj, strPath, opt) {
   const res = { str: strPath, found: 0, replaced: 0 };
 
   // const REG_DIFF = /\{(\w+\.\w[^{}]*?)\.(after|before)\.(second|minute|hour|day|week|month|year)\}/gi;
+  REG_DIFF.lastIndex = 0;
   const regexResult = REG_DIFF.exec(strPath);
   if (!regexResult) return res;
 
@@ -301,7 +303,7 @@ function pathReplace(object, strPath, opt) {
   if (DEBUG) console.debug(`try pathReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
+  REG_MINI.lastIndex = 0;
   // const REG_MINI = /\{(\/.*?\/)?([a-zа-я0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
   const regexResult = REG_MINI.exec(strPath);
   if (DEBUG) console.debug('regexResult', regexResult);
