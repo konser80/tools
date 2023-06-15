@@ -30,6 +30,7 @@ module.exports.isdatetime = validate.isDateTime;
 
 module.exports.jparse = require('./jparse').parse;
 
+module.exports.sanitize = require('./sanitize').sanitize;
 module.exports.textify = require('./textify').textify;
 module.exports.typeof = require('./textify').typeof;
 

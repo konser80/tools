@@ -1,6 +1,6 @@
 {
   "name": "tools",
-  "version": "2.5.8",
+  "version": "2.6.0",
   "description": "small useful functions",
   "main": "index.js",
   "scripts": {
