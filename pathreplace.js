@@ -12,7 +12,7 @@ const DEBUG = false;
 const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
-const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\}/gi;
+const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?)\}/gi;
 const REG_UUID = /\{uuid\.?(v\d)?}/gi;
 const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
 
@@ -236,7 +236,13 @@ function dateDiffReplace(obj, strPath, opt) {
   const strfull = regexResult[0];
   const objpath = regexResult[1];
   const afterbefore = regexResult[2];
-  const interval = regexResult[3].replace(/s$/, ''); // remove last 's'
+  let interval = regexResult[3].replace(/s$/, ''); // remove last 's'
+
+  let timeframe = false;
+  if (interval === 'timeframe') {
+    interval = 'second';
+    timeframe = true;
+  }
 
   if (DEBUG) console.debug(`call pathReplace with '{${objpath}}'`);
   // we need this because of {user.products.{invoice.name}.start.before.minute}
@@ -282,13 +288,13 @@ function dateDiffReplace(obj, strPath, opt) {
     // if (afterbefore === 'after') diff = dayjs().tz(opt.tz).diff(date2, interval);
     if (afterbefore === 'after') diff = (opt.tz) ? dayjs().tz(opt.tz).diff(date2, interval) : dayjs().diff(date2, interval);
     if (afterbefore === 'before') diff = (opt.tz) ? date2.tz(opt.tz).diff(dayjs(), interval) : date2.diff(dayjs(), interval);
-    // if (DEBUG) console.debug(`z4: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+
+    if (timeframe) diff = tools.timetotf2(diff * 1000);
 
     if (DEBUG) console.log(`diff ${diff}`);
   }
   else {
     diff = '';
-    // diff = null;
     if (DEBUG) console.log(`diff ${diff}`);
   }
 
