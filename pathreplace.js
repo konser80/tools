@@ -401,7 +401,7 @@ function pathReplace(object, strPath, opt) {
 
       // in case we have subregex, but not match - we replace with ''
       if (!subResult) replaceText = '';
-      if (subResult && subResult[1]) replaceText = subResult[1];
+      if (subResult && subResult[1]) replaceText = subResult[1].trim();
     }
     catch (e) {
       console.error(`[-] tools.pathreplace: ${e.message}`);
