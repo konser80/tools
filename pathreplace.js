@@ -31,7 +31,7 @@ function objectReplace(obj, somedata, options) {
   const opt = { ...{
     true: 'true',
     false: 'false',
-    null: 'null',
+    null: '',
     undefined: '',
     empty: '',
     escape: undefined,
@@ -377,7 +377,7 @@ function pathReplace(object, strPath, opt) {
   }
 
   // if (DEBUG) console.debug(`z4: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
-  // of this is an array of simple items, not array of objects
+  // if this is an array of simple items, not array of objects
   if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
     replaceText = replaceText.filter(Boolean).join(opt.array);
   }

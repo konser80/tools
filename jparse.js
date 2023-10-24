@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const replace = require('./pathreplace');
 
+const REGEX_ARRAY = /^\[.+\]$/;
 const REGEX_JSON = /^\s*(\[\s*)?\{([\s\S]*[:]+[\s\S]+)}\s*\]?\s*$/gm; // could be multiline
 const REGEX_PATH = /^\{([^": ]+)}$/; // can't contain : and " at the start
 
@@ -40,7 +41,7 @@ function parseObject(obj, src, defaultkey) {
   }
 
   // ok, this was not a path to object, let's check json
-  if (typeof src === 'string' && src.match(REGEX_JSON)) {
+  if (typeof src === 'string' && (src.match(REGEX_JSON) || src.match(REGEX_ARRAY))) {
     let jdata;
     try {
       jdata = replace(obj, src, { crlf: '\\n', escape: '\\"' }); // eslint-disable-line
