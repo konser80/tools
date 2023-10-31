@@ -2,7 +2,7 @@ const _ = require('lodash');
 const replace = require('./pathreplace');
 
 const REGEX_ARRAY = /^\[.+\]$/;
-const REGEX_JSON = /^\s*(\[\s*)?\{([\s\S]*[:]+[\s\S]+)}\s*\]?\s*$/gm; // could be multiline
+const REGEX_JSON = /^\s*(\[\s*)?\{([\s\S]*[:]+[\s\S]+)}\s*\]?\s*$/; // could be multiline
 const REGEX_PATH = /^\{([^": ]+)}$/; // can't contain : and " at the start
 
 // ==============================================
