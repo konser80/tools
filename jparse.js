@@ -8,7 +8,7 @@ const REGEX_PATH = /^\{([^": ]+)}$/; // can't contain : and " at the start
 // ==============================================
 // extended JSON.parse
 
-function parseObject(obj, src, defaultkey) {
+function parseObject(obj, src, defaultkey, replaceOptions) {
   if (src === undefined || src === null || src === '') {
     const res = {};
     if (defaultkey) res[defaultkey] = null;
@@ -28,7 +28,7 @@ function parseObject(obj, src, defaultkey) {
     let srcpath = src.match(REGEX_PATH)[1];
 
     // in case of complex paths
-    srcpath = replace(obj, srcpath);
+    srcpath = replace(obj, srcpath, replaceOptions);
 
     const srcobject = _.get(obj, srcpath);
     if (typeof srcobject === 'object') {
@@ -44,7 +44,8 @@ function parseObject(obj, src, defaultkey) {
   if (typeof src === 'string' && (src.match(REGEX_JSON) || src.match(REGEX_ARRAY))) {
     let jdata;
     try {
-      jdata = replace(obj, src, { crlf: '\\n', escape: '\\"' }); // eslint-disable-line
+      const params = { ...{ crlf: '\\n', escape: '\\"' }, ...replaceOptions };
+      jdata = replace(obj, src, params); // eslint-disable-line
       jdata = JSON.parse(jdata || '{}');
       jdata = deepStringFn(jdata, (item) => item.replace(/\\n/g, '\n'));
 
@@ -62,7 +63,7 @@ function parseObject(obj, src, defaultkey) {
 
   // not an object - just a key
   const res = {};
-  res[defaultkey || 'id'] = replace(obj, src);
+  res[defaultkey || 'id'] = replace(obj, src, replaceOptions);
   return res;
 }
 // ==============================================
