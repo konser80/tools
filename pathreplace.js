@@ -419,8 +419,9 @@ function pathReplace(object, strPath, opt) {
 function cleanEmpties(strPath) {
   if (!strPath || typeof strPath !== 'string') return strPath;
   let out = strPath;
-  out = out.replace(/ +/g, ' ');
+  // out = out.replace(/ +/g, ' '); // I need double spaces for <code> identation
   out = out.replace(/\n{3,}/gm, '\n\n');
+  out = out.trim();
   return out;
 }
 
