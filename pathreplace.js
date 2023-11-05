@@ -421,7 +421,7 @@ function cleanEmpties(strPath) {
   let out = strPath;
   // out = out.replace(/ +/g, ' '); // I need double spaces for <code> identation
   out = out.replace(/\n{3,}/gm, '\n\n');
-  out = out.trim();
+  // out = out.trim(); // NEVER do trim
   return out;
 }
 
