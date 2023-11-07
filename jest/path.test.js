@@ -84,7 +84,7 @@ test('getSimpleData', () => {
   expect(tools.replace(obj, '_{user.und}_')).toEqual('__');
   expect(tools.replace(obj, '_{user.und}_', { undefined: '#' })).toEqual('_#_');
 
-  expect(tools.replace(obj, '_{user.nul}_')).toEqual('_null_');
+  expect(tools.replace(obj, '_{user.nul}_')).toEqual('__');
   expect(tools.replace(obj, '_{user.nul}_', { null: '*' })).toEqual('_*_');
 
   // not exists

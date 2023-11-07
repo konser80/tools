@@ -12,7 +12,8 @@ const DEBUG = false;
 const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
-const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?)\}/gi;
+const REG_DIFF = /\{(?<path>[a-zа-я0-9_.[\]{}]+)\.(?<ab>after|before)\.(?<tf>seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?|spell\.?(?<lang>[a-z]{2})?)\}/gi;
+// const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?)\}/gi;
 const REG_UUID = /\{uuid\.?(v\d)?}/gi;
 const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
 
@@ -232,19 +233,28 @@ function dateDiffReplace(obj, strPath, opt) {
 
   res.found = 1;
   if (DEBUG) console.debug(`dateDiffReplace '${strPath}'`);
+  if (DEBUG) console.debug(regexResult.groups);
 
   const strfull = regexResult[0];
-  const objpath = regexResult[1];
-  const afterbefore = regexResult[2];
-  let interval = regexResult[3].replace(/s$/, ''); // remove last 's'
+  const objpath = regexResult.groups.path;
+  // const objpath = regexResult[1];
+  const afterbefore = regexResult.groups.ab;
+  // const afterbefore = regexResult[2];
+  let interval = regexResult.groups.tf.replace(/s$/, ''); // remove last 's'
+  // let interval = regexResult[3].replace(/s$/, ''); // remove last 's'
 
   let timeframe = false;
   if (interval === 'timeframe') {
     interval = 'second';
     timeframe = true;
   }
+  let spell = false;
+  if (interval.startsWith('spell')) {
+    interval = 'second';
+    spell = true;
+  }
 
-  if (DEBUG) console.debug(`call pathReplace with '{${objpath}}'`);
+  if (DEBUG) console.debug(`call pathReplace from Diff with '{${objpath}}'`);
   // we need this because of {user.products.{invoice.name}.start.before.minute}
   const result = { str: `{${objpath}}`, found: 0, replaced: 0 };
   let subres = {};
@@ -264,32 +274,24 @@ function dateDiffReplace(obj, strPath, opt) {
   if (dayjs(str).isValid()) {
     if (DEBUG) console.log(`using tz: ${opt.tz}`);
 
-    // const t1 = process.hrtime.bigint();
-
     // if our string contains tz like +03:00 or ...000Z, so do not apply TZ parsing
     let date2;
-    // if (DEBUG) console.debug(`z0: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
     // const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
-    // if (DEBUG) console.debug(`z1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
     if (str.match(REGEX_TZ) || !opt.tz) {
       date2 = dayjs(str);
-      // if (DEBUG) console.debug(`z1.1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
     }
     else {
       date2 = dayjs.tz(str, opt.tz);
-      // if (DEBUG) console.debug(`z1.2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
     }
-    // if (DEBUG) console.debug(`z2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
 
     if (DEBUG) console.log(date2.toString());
     // if (DEBUG) console.log(dayjs());
 
-    // if (DEBUG) console.debug(`z3: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
-    // if (afterbefore === 'after') diff = dayjs().tz(opt.tz).diff(date2, interval);
     if (afterbefore === 'after') diff = (opt.tz) ? dayjs().tz(opt.tz).diff(date2, interval) : dayjs().diff(date2, interval);
     if (afterbefore === 'before') diff = (opt.tz) ? date2.tz(opt.tz).diff(dayjs(), interval) : date2.diff(dayjs(), interval);
 
     if (timeframe) diff = tools.timetotf2(diff * 1000);
+    if (spell) diff = doSpell(diff, regexResult.groups.lang);
 
     if (DEBUG) console.log(`diff ${diff}`);
   }
@@ -424,5 +426,49 @@ function cleanEmpties(strPath) {
   // out = out.trim(); // NEVER do trim
   return out;
 }
+
+// ==============================================
+function doSpell(timeDifference, _lang = 'ru') {
+  const lang = (_lang === 'ru') ? 'ru' : 'en';
+
+  const years = Math.floor(timeDifference / (60 * 60 * 24 * 365));
+  const months = Math.floor(timeDifference / (60 * 60 * 24 * 30));
+  const days = Math.floor(timeDifference / (60 * 60 * 24));
+  const hours = Math.floor((timeDifference % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((timeDifference % (60 * 60)) / (60));
+
+  if (years > 0) return `${years} ${spellTimeframe(months, 'y', lang)}`;
+  if (months > 0) return `${months} ${spellTimeframe(months, 'M', lang)}`;
+  if (days > 0) return `${days} ${spellTimeframe(days, 'd', lang)}`;
+  if (hours > 0) return `${hours} ${spellTimeframe(hours, 'h', lang)}`;
+  if (minutes >= 0) return `${minutes} ${spellTimeframe(minutes, 'm', lang)}`;
+  return `${0} ${spellTimeframe(0, 'm')}`;
+}
+// ==============================
+function spellTimeframe(num, char, lang) {
+
+  const p = {
+    ru: {
+      m: { one: 'минута', elv: 'минут', two: 'минуты' },
+      h: { one: 'час', elv: 'часов', two: 'часа' },
+      d: { one: 'день', elv: 'дней', two: 'дня' },
+      M: { one: 'месяц', elv: 'месяцев', two: 'месяца' },
+      y: { one: 'год', elv: 'лет', two: 'года' }
+    },
+    en: {
+      m: { one: 'minute', elv: 'minutes', two: 'minutes' },
+      h: { one: 'hour', elv: 'hours', two: 'hours' },
+      d: { one: 'day', elv: 'days', two: 'days' },
+      M: { one: 'month', elv: 'months', two: 'months' },
+      y: { one: 'year', elv: 'years', two: 'years' }
+    }
+  };
+
+  if (num >= 10 && num <= 20) return p[lang][char].elv;
+  if (num % 10 === 1) return p[lang][char].one;
+  if (num % 10 >= 2 && num % 10 <= 4) return p[lang][char].two;
+  return p[lang][char].elv;
+}
+
 
 module.exports = objectReplace;
