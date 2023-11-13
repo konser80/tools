@@ -20,7 +20,9 @@ function parseObject(obj, src, defaultkey, replaceOptions) {
     if (defaultkey
       && !Array.isArray(src)
       && !_.has(src, defaultkey)) src[defaultkey] = null;
-    return src;
+    // replace object values
+    const dest = replace(obj, src, replaceOptions);
+    return dest;
   }
 
   // pointer (path) to an object?
