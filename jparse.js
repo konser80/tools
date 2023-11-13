@@ -38,7 +38,8 @@ function parseObject(obj, src, defaultkey, replaceOptions) {
       if (defaultkey
         && !Array.isArray(srcobject)
         && !_.has(srcobject, defaultkey)) srcobject[defaultkey] = null;
-      return srcobject;
+      const dest = replace(obj, srcobject, replaceOptions);
+      return dest;
     }
   }
 
