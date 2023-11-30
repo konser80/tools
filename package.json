@@ -1,6 +1,6 @@
 {
   "name": "tools",
-  "version": "2.7.2",
+  "version": "2.7.3",
   "description": "small useful functions",
   "main": "index.js",
   "scripts": {
@@ -26,8 +26,8 @@
   },
   "homepage": "https://github.com/konser80/tools#readme",
   "jest": {
-   "moduleNameMapper": {
-     "axios": "axios/dist/node/axios.cjs"
+    "moduleNameMapper": {
+      "axios": "axios/dist/node/axios.cjs"
     }
   },
   "devDependencies": {
