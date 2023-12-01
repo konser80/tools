@@ -24,7 +24,7 @@ function textify(obj, _opt) {
   }
 
   // limit chars
-  if ((opt.limit) && res.length > opt.limit) {
+  if (typeof res === 'string' && (opt.limit) && res.length > opt.limit) {
     res = res.slice(0, opt.limit);
     res += '...';
   }
