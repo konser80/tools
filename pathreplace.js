@@ -16,6 +16,7 @@ const REG_DIFF = /\{(?<path>[a-zа-я0-9_.[\]{}]+)\.(?<ab>after|before)\.(?<tf>s
 // const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?)\}/gi;
 const REG_UUID = /\{uuid\.?(v\d)?}/gi;
 const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
+const REGEX_DIGITS = /^(\d+)$/;
 
 // example:
 // this user{?, who {user.age} years old,} can do some job
@@ -277,11 +278,17 @@ function dateDiffReplace(obj, strPath, opt) {
     // if our string contains tz like +03:00 or ...000Z, so do not apply TZ parsing
     let date2;
     // const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
-    if (str.match(REGEX_TZ) || !opt.tz) {
+    if (str.match(REGEX_DIGITS)) {
+      date2 = dayjs(parseInt(str));
+      if (DEBUG) console.log(`parsing by timestamp: ${date2}`);
+    }
+    else if (str.match(REGEX_TZ) || !opt.tz) {
       date2 = dayjs(str);
+      if (DEBUG) console.log(`parsing without tz: ${date2}`);
     }
     else {
       date2 = dayjs.tz(str, opt.tz);
+      if (DEBUG) console.log(`parsing with tz: ${date2}`);
     }
 
     if (DEBUG) console.log(date2.toString());
