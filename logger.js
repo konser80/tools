@@ -125,9 +125,9 @@ function formatLog(message, level, _opt, datetime) {
   log.data = textify(log.data, { colors: true });
 
   // level
-  if (level === 'warn') log.level = `${'[WARN]'.yellow.inverse} `;
-  if (level === 'error') log.level = `${'[ERROR]'.bgRed} `;
-  if (level === 'fatal') log.level = `${'[FATAL]'.red} `;
+  if (level === 'warn') log.level = `${' W '.yellow.inverse}`;
+  if (level === 'error') log.level = `${' E '.bgRed}`;
+  if (level === 'fatal') log.level = `${' F '.red}`;
 
   // error?
   if (message instanceof Error || opt.err instanceof Error) {
@@ -159,6 +159,12 @@ function formatLog(message, level, _opt, datetime) {
   // colors
   if ((level === 'trace' || level === 'silly') && (opt.colors !== true)) {
     log.data = resetColors(log.data).blue;
+  }
+  if (level === 'warn') {
+    log.data = resetColors(log.data).yellow;
+  }
+  if (level === 'error') {
+    log.data = resetColors(log.data).red;
   }
   if (level === 'debug' && opt.colors !== true) {
     log.data = resetColors(log.data).grey;
