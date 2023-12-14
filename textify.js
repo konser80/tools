@@ -1,14 +1,19 @@
-const dayjs = require('dayjs');
-const util = require('util');
 const _ = require('lodash');
+const util = require('util');
+const dayjs = require('dayjs');
+dayjs.extend(require('dayjs/plugin/utc'));
+dayjs.extend(require('dayjs/plugin/timezone'));
+const validate = require('./validate');
 
 // =============================================================
-function textify(obj, _opt) {
+function textify(obj, _opt = {}) {
   let res = obj;
 
   const opt = { ...{
     colors: false,
-    crlf: true
+    crlf: true,
+    dateformat: 'YYYY-MM-DD HH:mm:ss',
+    tz: undefined
   },
   ..._opt };
 
@@ -21,6 +26,21 @@ function textify(obj, _opt) {
   // date?
   if (typeof obj === 'object' && isDate(obj)) {
     return dayjs(obj).format('YYYY-MM-DD HH:mm:ss.SSS');
+  }
+
+  if (typeof res === 'string' && validate.isDateTime(res) && _opt.dateformat) {
+    try {
+      // if (DEBUG) console.debug(`z2.1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+      res = (opt.tz)
+        ? dayjs(res).tz(opt.tz).format(opt.dateformat)
+        : dayjs(res).format(opt.dateformat);
+      // replaceText = dayjs(replaceText).tz(opt.tz).format(opt.dateformat);
+      // if (DEBUG) console.debug(`z2.2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
+    }
+    catch (e) {
+      console.error(`[-] ${e.message}`);
+      res = dayjs(res).tz().format('YYYY-MM-DD HH:mm:ss');
+    }
   }
 
   // limit chars
