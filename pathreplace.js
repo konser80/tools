@@ -405,7 +405,7 @@ function pathReplace(object, strPath, opt) {
   // if we have sub-regex, apply it
   if (typeof replaceText === 'string' && sregex) {
     try {
-      const subRegex = new RegExp(sregex.slice(1, -1), 'i');
+      const subRegex = new RegExp(sregex.slice(1, -1), 'si');
       const subResult = replaceText.match(subRegex);
 
       // in case we have subregex, but not match - we replace with ''
