@@ -76,20 +76,41 @@ function isDate(date) {
 function getType(src) {
 
   let res = typeof src;
-  if (!Array.isArray(src)) return res;
 
-  if (src.length === 0) {
-    res = 'array (0 items)';
+
+  if (res === 'string') {
+    res = `string (${src.length} chars)`;
     return res;
   }
 
-  const types = [];
-  for (let i=0; i < src.length; i += 1) {
-    types.push(typeof src[i]);
+  if (src === null) {
+    res = 'object (null)';
+    return res;
   }
 
-  res = `array (${src.length} items of ${_.uniq(types)})`;
-  // res = `array of ${typeof src[0]} (${src.length} items)`;
+  // object
+  if (res === 'object' && !Array.isArray(src)) {
+    res = `object (${Object.keys(src).length} keys)`;
+    return res;
+  }
+
+  // arrays
+  if (Array.isArray(src)) {
+    if (src.length === 0) {
+      res = 'array (0 items)';
+      return res;
+    }
+
+    const types = [];
+    for (let i = 0; i < src.length; i += 1) {
+      types.push(typeof src[i]);
+    }
+
+    res = `array (${src.length} items of ${_.uniq(types)})`;
+    // res = `array of ${typeof src[0]} (${src.length} items)`;
+    return res;
+  }
+
   return res;
 }
 
