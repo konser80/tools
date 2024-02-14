@@ -437,25 +437,32 @@ function cleanEmpties(strPath) {
 // ==============================================
 function doSpell(timeDifference, _lang = 'ru') {
   const lang = (_lang === 'ru') ? 'ru' : 'en';
+  if (DEBUG) console.debug(`doSpell timeDifference ${timeDifference}`);
 
   const years = Math.floor(timeDifference / (60 * 60 * 24 * 365));
   const months = Math.floor(timeDifference / (60 * 60 * 24 * 30));
   const days = Math.floor(timeDifference / (60 * 60 * 24));
   const hours = Math.floor((timeDifference % (60 * 60 * 24)) / (60 * 60));
   const minutes = Math.floor((timeDifference % (60 * 60)) / (60));
+  const seconds = Math.floor(timeDifference);
+
+  if (DEBUG) console.debug(`doSpell ${years} years, ${months} months, ${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
 
   if (years > 0) return `${years} ${spellTimeframe(months, 'y', lang)}`;
   if (months > 0) return `${months} ${spellTimeframe(months, 'M', lang)}`;
   if (days > 0) return `${days} ${spellTimeframe(days, 'd', lang)}`;
   if (hours > 0) return `${hours} ${spellTimeframe(hours, 'h', lang)}`;
-  if (minutes >= 0) return `${minutes} ${spellTimeframe(minutes, 'm', lang)}`;
-  return `${0} ${spellTimeframe(0, 'm')}`;
+  if (minutes > 0) return `${minutes} ${spellTimeframe(minutes, 'm', lang)}`;
+  if (seconds >= 0) return `${seconds} ${spellTimeframe(seconds, 's', lang)}`;
+
+  return `${0} ${spellTimeframe(0, 'm', 'ru')}`;
 }
 // ==============================
 function spellTimeframe(num, char, lang) {
 
   const p = {
     ru: {
+      s: { one: 'секунда', elv: 'секунд', two: 'секунды' },
       m: { one: 'минута', elv: 'минут', two: 'минуты' },
       h: { one: 'час', elv: 'часов', two: 'часа' },
       d: { one: 'день', elv: 'дней', two: 'дня' },
@@ -463,6 +470,7 @@ function spellTimeframe(num, char, lang) {
       y: { one: 'год', elv: 'лет', two: 'года' }
     },
     en: {
+      s: { one: 'second', elv: 'seconds', two: 'seconds' },
       m: { one: 'minute', elv: 'minutes', two: 'minutes' },
       h: { one: 'hour', elv: 'hours', two: 'hours' },
       d: { one: 'day', elv: 'days', two: 'days' },
