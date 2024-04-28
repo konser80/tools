@@ -34,6 +34,8 @@ module.exports.sanitize = require('./sanitize').sanitize;
 module.exports.textify = require('./textify').textify;
 module.exports.typeof = require('./textify').typeof;
 
+module.exports.correctHTML = require('./html').correctHTML;
+
 // array.forEachAsync
 require('./async').init();
 module.exports.forEachAsyncFn = require('./async').forEachAsyncFn;
