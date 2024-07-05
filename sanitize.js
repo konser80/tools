@@ -50,6 +50,8 @@ Object.keys(config.symbols).forEach((key) => {
 
 // ==============================================
 function main(str, _opt = {}) {
+  if (!str) return str;
+  
   const opt = {
     spaces: true,
     emoji: false
