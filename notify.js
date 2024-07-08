@@ -4,25 +4,28 @@ const tools = require('./index');
 const log = tools.logger('trace');
 
 const NOTIFY_URL = 'https://bs1.konser.ru/notifybot/alert';
-const TIMER_WAIT = 1500;
+const TIMER_WAIT = 2000;
 const DEBUG = false;
 
 let job = null;
 let array = {};
 
 // ==============================================
-function notify(param) {
+function notify(param, url) {
   if (DEBUG) log.trace(`[ ] onEvent: ${param}`);
+
+  let address = NOTIFY_URL;
+  if (url && typeof url === 'string' && url.startsWith('https://')) address = url;
 
   const txt = tools.textify(param, { colors: false });
   array[txt] = array[txt] +1 || 1;
 
   if (job) clearTimeout(job);
-  job = setTimeout(onTimer, TIMER_WAIT);
+  job = setTimeout(() => onTimer(address), TIMER_WAIT);
 }
 
 // ==============================================
-function onTimer() {
+function onTimer(url) {
 
   if (DEBUG) log.trace('[+] notify: sending array');
   if (DEBUG) log.trace(array);
@@ -36,7 +39,7 @@ function onTimer() {
 
     // ready? send!
     try {
-      axios.post(NOTIFY_URL, payload);
+      axios.post(url, payload);
     }
     catch (err) {
       if (DEBUG) log.error(`[-] notify error: ${err.message}`);
