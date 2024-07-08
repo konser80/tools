@@ -7,6 +7,7 @@ const { tftotime } = require('./timeframes');
 // ==============================================
 async function removeOldFiles(folder, older) {
   if (!folder) return false;
+  if (!older) return false;
 
   const now = dayjs().valueOf();
   const diff = tftotime(older || '30d');
