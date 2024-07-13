@@ -9,7 +9,7 @@ let previous = null;
 const cache = {};
 
 // ==============================================
-function configureLogger(minlevel = 'debug', opts = {}) {
+function configureLogger(minlevel = 'silly', opts = {}) {
 
   let tracePattern = 'yyyy-MM-dd-hh0000';
   if (opts.hourly === false) tracePattern = 'yyyy-MM-dd';
@@ -18,7 +18,7 @@ function configureLogger(minlevel = 'debug', opts = {}) {
   log4js.addLayout('pretty', () => formatLog4JS);
   log4js.configure({
     levels: {
-      SILLY: { value: 2500, colour: 'blue' }
+      SILLY: { value: 2500, colour: 'cyan' }
     },
     appenders: {
       console: { layout, type: 'stdout' },
@@ -32,13 +32,13 @@ function configureLogger(minlevel = 'debug', opts = {}) {
         // numBackups: 5
       },
 
-      debugfile: {
-        layout,
-        type: 'dateFile',
-        filename: 'logs/debug.log',
-        pattern: 'old/yyyy-MM/yyyy-MM-dd',
-        keepFileExt: true
-      },
+      // debugfile: {
+      //   layout,
+      //   type: 'dateFile',
+      //   filename: 'logs/debug.log',
+      //   pattern: 'old/yyyy-MM/yyyy-MM-dd',
+      //   keepFileExt: true
+      // },
 
       errorfile: {
         layout,
@@ -51,11 +51,11 @@ function configureLogger(minlevel = 'debug', opts = {}) {
       show: { type: 'logLevelFilter', appender: 'console', level: minlevel },
 
       savetrace: { type: 'logLevelFilter', appender: 'tracefile', level: 'trace' },
-      savedebug: { type: 'logLevelFilter', appender: 'debugfile', level: 'debug' },
+      // savedebug: { type: 'logLevelFilter', appender: 'debugfile', level: 'debug' },
       saveerror: { type: 'logLevelFilter', appender: 'errorfile', level: 'warn' },
     },
     categories: {
-      default: { appenders: ['show', 'savetrace', 'savedebug', 'saveerror'], level: 'silly' }
+      default: { appenders: ['show', 'savetrace', 'saveerror'], level: 'silly' }
     }
   });
 
@@ -81,6 +81,9 @@ function configureConsole() {
     // ==============================================
     function newConsole(data, _opt) {
 
+      // do not do anything
+      // if (_opt && _opt.log === false) return;
+
       const level = name;
       const time = dayjs();
       const res = formatLog(data, level, _opt, time);
@@ -95,6 +98,9 @@ function formatLog4JS(logEvent) {
   const data = logEvent.data[0];
   const opt = logEvent.data[1] || {};
   const time = logEvent.startTime || dayjs();
+
+  // do NOT do anything - this doesn't work!!!
+  // if (opt.log === false) return null;
 
   // result from cache
   if (cache.level === level
@@ -125,6 +131,7 @@ function formatLog(message, level, _opt, datetime) {
   log.data = textify(log.data, { colors: true });
 
   // level
+  if (level === 'silly') log.level = `${' S '.cyan.inverse}`;
   if (level === 'warn') log.level = `${' W '.yellow.inverse}`;
   if (level === 'error') log.level = `${' E '.bgRed}`;
   if (level === 'fatal') log.level = `${' F '.red}`;
@@ -157,7 +164,10 @@ function formatLog(message, level, _opt, datetime) {
   if (level === 'trace' && typeof log.data === 'string' && opt.time && log.data.indexOf('\n') !== -1) log.data = `\n${log.data}`;
 
   // colors
-  if ((level === 'trace' || level === 'silly') && (opt.colors !== true)) {
+  if (level === 'silly') {
+    log.data = resetColors(log.data).cyan;
+  }
+  if ((level === 'trace') && (opt.colors !== true)) {
     log.data = resetColors(log.data).blue;
   }
   if (level === 'warn') {
