@@ -42,6 +42,7 @@ function objectReplace(obj, somedata, options) {
     date: true,
     dateformat: 'YYYY-MM-DD HH:mm:ss',
     tz: undefined,
+    random: false
   },
   ...options };
 
@@ -54,6 +55,9 @@ function objectReplace(obj, somedata, options) {
 
     if (DEBUG) console.debug('call multiReplace for last time');
     res = multiReplace(obj, res, opt).str;
+
+    if (DEBUG) console.debug('call randomTextReplace');
+    res = randomTextReplace(obj, res, opt);
 
     return res;
   }
@@ -432,6 +436,20 @@ function cleanEmpties(strPath) {
   out = out.replace(/\n{3,}/gm, '\n\n');
   // out = out.trim(); // NEVER do trim
   return out;
+}
+
+// ==============================================
+function randomTextReplace(obj, str, opt) {
+  if (!opt.random) {
+    if (DEBUG) console.debug(`try opt.random is not true, return '${str}'`);
+    return str;
+  }
+
+  if (DEBUG) console.debug(`try randomTextReplace '${str}'`);
+
+  const res = tools.randomtext(str);
+  if (DEBUG) console.debug(`return '${res}'`);
+  return res;
 }
 
 // ==============================================
