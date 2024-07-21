@@ -12,6 +12,7 @@ const DEBUG = false;
 const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
+const REGEX_ASNUMBER = /\{([a-zа-я0-9_.[\]{}]+)\.asnumber}/gi;
 const REG_DIFF = /\{(?<path>[a-zа-я0-9_.[\]{}]+)\.(?<ab>after|before)\.(?<tf>seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?|spell\.?(?<lang>[a-z]{2})?)\}/gi;
 // const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?)\}/gi;
 const REG_UUID = /\{uuid\.?(v\d)?}/gi;
@@ -161,6 +162,13 @@ function multiReplace(object, strPath, opt) {
   } while (subres.found > 0);
 
   do {
+    subres = asNumberReplace(object, res.str, opt);
+    res.found += subres.found;
+    res.replaced += subres.replaced;
+    res.str = subres.str;
+  } while (subres.found > 0);
+
+  do {
     subres = pathReplace(object, res.str, opt);
     res.found += subres.found;
     res.replaced += subres.replaced;
@@ -225,6 +233,59 @@ function randomReplace(strPath) {
   if (DEBUG) console.debug(`randomReplace str: ${tools.textify(res)}`);
   return res;
 }
+// ==============================================
+function asNumberReplace(obj, strPath, opt) {
+  if (DEBUG) console.debug(`try asNumberReplace '${strPath}'`);
+  const res = { str: strPath, found: 0, replaced: 0 };
+
+  REGEX_ASNUMBER.lastIndex = 0;
+  const regexResult = REGEX_ASNUMBER.exec(strPath);
+  if (!regexResult) return res;
+
+  res.found = 1;
+  if (DEBUG) console.debug(`asNumberReplace '${strPath}'`);
+  if (DEBUG) console.debug(regexResult);
+
+  const objpath = regexResult[0];
+  const snumber = regexResult[1];
+
+  if (DEBUG) console.debug(`call pathReplace from asNumberReplace with '{${snumber}}'`);
+  const result = { str: `{${snumber}}`, found: 0, replaced: 0 };
+  let subres = {};
+  do {
+    // replace datetime to universal format without timezone - do not use opt so
+    subres = pathReplace(obj, result.str, { tz: opt.tz }); // do NOT use opt because of dateformat
+
+    result.found += subres.found;
+    result.replaced += subres.replaced;
+    result.str = subres.str;
+  } while (subres.found > 0);
+
+  const { str } = result;
+  if (DEBUG) console.debug(`=> return from pathReplace is '${str}'`);
+
+  if (str === 'undefined') {
+    if (DEBUG) console.debug(`undefined, returning empty`);
+    res.str = strPath.replace(objpath, '');
+    return res;
+  }
+
+  let value = parseFloat(str);
+  if (!isNaN(value)) {
+    value = value.toLocaleString('en-US');
+
+    if (DEBUG) console.debug(`parsed, replacing '${objpath}' to '${value}'`);
+    res.str = strPath.replace(objpath, value);
+    res.replaced = 1;
+  }
+  else {
+    if (DEBUG) console.debug(`not parsed, returned as is: '${str}'`);
+    res.str = strPath.replace(objpath, str);
+  }
+
+  return res;
+}
+
 // ==============================================
 function dateDiffReplace(obj, strPath, opt) {
   if (DEBUG) console.debug(`try dateDiffReplace '${strPath}'`);
