@@ -12,7 +12,7 @@ const cache = {};
 function configureLogger(minlevel = 'silly', opts = {}) {
 
   let tracePattern = 'yyyy-MM-dd';
-  if (opts.hourly !== true) tracePattern = 'yyyy-MM-dd-hh0000';
+  if (opts.hourly === true) tracePattern = 'yyyy-MM-dd-hh0000';
 
   const layout = { type: 'pretty' };
   log4js.addLayout('pretty', () => formatLog4JS);
