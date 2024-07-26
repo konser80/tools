@@ -5,6 +5,8 @@ dayjs.extend(require('dayjs/plugin/utc'));
 dayjs.extend(require('dayjs/plugin/timezone'));
 const validate = require('./validate');
 
+const DEBUG = false;
+
 // =============================================================
 function textify(obj, _opt = {}) {
   let res = obj;
@@ -13,7 +15,9 @@ function textify(obj, _opt = {}) {
     colors: false,
     crlf: true,
     dateformat: 'YYYY-MM-DD HH:mm:ss',
-    tz: undefined
+    tz: undefined,
+    autosort: false,
+    sort: false
   },
   ..._opt };
 
@@ -23,11 +27,12 @@ function textify(obj, _opt = {}) {
   if (typeof obj === 'number') return obj.toString();
   // if (typeof obj !== 'object') return res;
 
-  // date?
+  // date
   if (typeof obj === 'object' && isDate(obj)) {
     return dayjs(obj).format('YYYY-MM-DD HH:mm:ss.SSS');
   }
 
+  // string date
   if (typeof res === 'string' && validate.isDateTime(res) && _opt.dateformat) {
     try {
       // if (DEBUG) console.debug(`z2.1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
@@ -49,17 +54,30 @@ function textify(obj, _opt = {}) {
     res += '...';
   }
 
-  // some other object?
+  // some other object
   if (typeof obj !== 'string') {
     const params = {
       colors: opt.colors,
       depth: null,
       showHidden: false
     };
-    res = util.inspect(obj, params);
-    if (opt.crlf === false) {
-      res = res.replace(/\n/g, ' ').replace(/ {2,}/g, ' ');
+
+    if (opt.autosort) {
+      if (DEBUG) console.log(`trying to smart sort keys`);
+      const sorted = smartSortObjectKeys(obj);
+      if (DEBUG) console.log(sorted);
+      res = util.inspect(sorted, params);
     }
+    else if (opt.sort) {
+      const sorted = sortObjectKeys(obj);
+      res = util.inspect(sorted, params);
+    }
+    else {
+      if (DEBUG) console.log(`without sort`);
+      res = util.inspect(obj, params);
+    }
+
+    if (opt.crlf === false) res = res.replace(/\n/g, ' ').replace(/ {2,}/g, ' ');
     res = truncateColoredString(res, opt.limit);
   }
 
@@ -67,8 +85,72 @@ function textify(obj, _opt = {}) {
 }
 
 // =============================================================
+function sortObjectKeys(obj) {
+  if (DEBUG) console.log(`sortObjectKeys`);
+
+  // Check if the input is not an object or is an array
+  if (typeof obj !== 'object' || Array.isArray(obj)) return obj;
+
+  // Get an array of keys and sort them alphabetically
+  const sortedKeys = Object.keys(obj).sort();
+
+  if (DEBUG) console.log(sortedKeys);
+
+  // Create a new object with sorted keys
+  const sortedObj = {};
+  sortedKeys.forEach((key) => {
+    sortedObj[key] = obj[key];
+  });
+
+  return sortedObj;
+}
+
+// =============================================================
+function smartSortObjectKeys(obj) {
+  // Check if the input is not an object or is an array
+  if (typeof obj !== 'object' || Array.isArray(obj)) return obj;
+
+  // Separate keys into two arrays: one for primitive values and one for objects
+  const primitiveKeys = [];
+  const objectKeys = [];
+
+  Object.keys(obj).forEach((key) => {
+    if (typeof obj[key] === 'object' && obj[key] !== null && !isDate(obj[key])) {
+      objectKeys.push(key);
+    }
+    else {
+      primitiveKeys.push(key);
+    }
+  });
+
+  // Sort both arrays of keys alphabetically
+  primitiveKeys.sort();
+
+  // Sort object keys by the number of own keys they have, then alphabetically
+  objectKeys.sort((a, b) => {
+    const aLength = Object.keys(obj[a]).length;
+    const bLength = Object.keys(obj[b]).length;
+    if (aLength === bLength) {
+      return a.localeCompare(b);
+    }
+    return aLength - bLength;
+  });
+
+  // Create a new object with sorted keys, primitive first, then objects
+  const sortedObj = {};
+  primitiveKeys.forEach((key) => {
+    sortedObj[key] = obj[key];
+  });
+  objectKeys.forEach((key) => {
+    sortedObj[key] = obj[key];
+  });
+
+  return sortedObj;
+}
+
+// =============================================================
 function isDate(date) {
-  const res = date && Object.prototype.toString.call(date) === '[object Date]' && !isNaN(date);
+  const res = date && Object.prototype.toString.call(date) === '[object Date]' && !isNaN(date); // eslint-disable-line
   return res;
 }
 
