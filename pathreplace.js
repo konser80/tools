@@ -47,7 +47,7 @@ function objectReplace(obj, somedata, options) {
   },
   ...options };
 
-  // if (DEBUG) console.debug(options);
+  if (DEBUG) console.debug(options);
 
   // simple value
   if (typeof somedata !== 'object') {
@@ -380,7 +380,7 @@ function dateDiffReplace(obj, strPath, opt) {
 }
 // ==============================================
 function pathReplace(object, strPath, opt) {
-  if (DEBUG) console.debug(`try pathReplace '${strPath}'`);
+  if (DEBUG) console.debug(`try pathReplace '${strPath}' with opt ${JSON.stringify(opt)}`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
   REG_MINI.lastIndex = 0;
@@ -400,7 +400,8 @@ function pathReplace(object, strPath, opt) {
   // get value
   let replaceText = _.get(object, objpath);
   if (DEBUG) console.debug(`[ ] replaceText (before): '${typeof replaceText}' ${tools.textify(replaceText)}`);
-  // const t1 = process.hrtime.bigint();
+
+  // replaceText could be ANY type
 
   if (replaceText === '') replaceText = opt.empty;
   if (replaceText === null) replaceText = opt.null;
@@ -409,12 +410,16 @@ function pathReplace(object, strPath, opt) {
   if (replaceText === undefined) {
     replaceText = (_.endsWith(objpath, '.length')) ? 0 : opt.undefined;
   }
-  // if (replaceText === undefined) replaceText = opt.undefined;
+  if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
+    replaceText = replaceText.filter(Boolean).join(opt.array);
+  }
+  if (typeof replaceText === 'object') replaceText = tools.textify(replaceText, { crlf: false });
 
-  // if (DEBUG) console.debug(`z1: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
 
   if (typeof replaceText === 'string' && opt.crlf !== undefined) {
     replaceText = replaceText.replace(/\n/g, opt.crlf);
+    if (DEBUG) console.debug(`[ ] opt.crlf replace, result:`);
+    if (DEBUG) console.debug(replaceText);
   }
 
   // if (DEBUG) console.debug(`z2: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
@@ -452,10 +457,6 @@ function pathReplace(object, strPath, opt) {
 
   // if (DEBUG) console.debug(`z4: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);
   // if this is an array of simple items, not array of objects
-  if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
-    replaceText = replaceText.filter(Boolean).join(opt.array);
-  }
-  if (typeof replaceText === 'object') replaceText = tools.textify(replaceText);
 
   // fix $& behavior
   // if (DEBUG) console.debug(`z5: ${Number(process.hrtime.bigint() - t1)/1000} mcs`);

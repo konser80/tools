@@ -97,7 +97,7 @@ function highlightParseError(e, _string) {
   // console.log(`'${after}'`);
 
   const res = `${before}${match}${after}`;
-  console.warn(`[-] parse: ${err}: ${res}`);
+  console.warn(` parse: ${err}: ${res}`);
 }
 
 // ==============================================
