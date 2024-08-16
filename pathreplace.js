@@ -13,7 +13,7 @@ const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REGEX_ASNUMBER = /\{([a-zа-я0-9_.[\]{}]+)\.asnumber}/gi;
-const REG_DIFF = /\{(?<path>[a-zа-я0-9_.[\]{}]+)\.(?<ab>after|before)\.(?<tf>seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?|spell\.?(?<lang>[a-z]{2})?)\}/gi;
+const REG_DIFF = /\{(?<pre>\/.*?\/)?(?<path>[a-zа-я0-9_.[\]{}]+)\.(?<ab>after|before)\.(?<tf>seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?|spell\.?(?<lang>[a-z]{2})?)\}/gi;
 // const REG_DIFF = /\{([a-zа-я0-9_.[\]{}]+)\.(after|before)\.(seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?)\}/gi;
 const REG_UUID = /\{uuid\.?(v\d)?}/gi;
 const REGEX_TZ = /(\+\d{2}:\d{2}|Z)$/;
@@ -25,7 +25,7 @@ const REGEX_DIGITS = /^(\d+)$/;
 
 // ==============================================
 function objectReplace(obj, somedata, options) {
-  if (DEBUG) console.debug(`objectReplace ${somedata}`);
+  if (DEBUG) console.debug(`objectReplace "${somedata}"`);
 
   if (somedata === undefined
     || somedata === null
@@ -365,6 +365,9 @@ function dateDiffReplace(obj, strPath, opt) {
     if (timeframe) diff = tools.timetotf2(diff * 1000);
     if (spell) diff = doSpell(diff, regexResult.groups.lang);
 
+    // apply pre-regex
+    diff = applySubRegex(diff, regexResult.groups.pre);
+
     if (DEBUG) console.log(`diff ${diff}`);
   }
   else {
@@ -398,7 +401,7 @@ function pathReplace(object, strPath, opt) {
   regexResult.lastIndex = 0;
 
   // get value
-  let replaceText = _.get(object, objpath);
+  let replaceText = _.get(object, objpath); // INCORRECT!!!
   if (DEBUG) console.debug(`[ ] replaceText (before): '${typeof replaceText}' ${tools.textify(replaceText)}`);
 
   // replaceText could be ANY type
@@ -469,20 +472,7 @@ function pathReplace(object, strPath, opt) {
   // replaceText = replaceText.toString().trim();
 
   // if we have sub-regex, apply it
-  if (typeof replaceText === 'string' && sregex) {
-    try {
-      const subRegex = new RegExp(sregex.slice(1, -1), 'si');
-      const subResult = replaceText.match(subRegex);
-
-      // in case we have subregex, but not match - we replace with ''
-      if (!subResult) replaceText = '';
-      if (subResult && subResult[1]) replaceText = subResult[1].trim();
-    }
-    catch (e) {
-      console.error(`[-] tools.pathreplace: ${e.message}`);
-      console.log(sregex.slice(1, -1));
-    }
-  }
+  replaceText = applySubRegex(replaceText, sregex);
 
   res.str = strPath.replace(strfull, replaceText);
   if (replaceText !== '' && replaceText !== null) res.replaced = 1;
@@ -498,6 +488,32 @@ function cleanEmpties(strPath) {
   out = out.replace(/\n{3,}/gm, '\n\n');
   // out = out.trim(); // NEVER do trim
   return out;
+}
+
+// ==============================================
+function applySubRegex(inputString, subregex) {
+
+  // no subregex? return original string
+  if (!subregex) return inputString;
+
+  let result = inputString;
+  if (typeof result === 'string' && subregex) {
+    if (DEBUG) console.log(`applySubRegex ${subregex} to ${inputString}`);
+    try {
+      const subRegex = new RegExp(subregex.slice(1, -1), 'si');
+      const subResult = result.match(subRegex);
+
+      // in case we have subregex, but not match - we replace with ''
+      if (!subResult) result = '';
+      if (subResult && subResult[1]) result = subResult[1].trim();
+    }
+    catch (e) {
+      if (DEBUG) console.error(`[-] tools.pathreplace: ${e.message}`);
+      if (DEBUG) console.log(subregex.slice(1, -1));
+    }
+    if (DEBUG) console.log(`...subregex: ${result}`);
+  }
+  return result;
 }
 
 // ==============================================
