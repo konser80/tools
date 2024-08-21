@@ -416,7 +416,8 @@ function pathReplace(object, strPath, opt) {
   if (Array.isArray(replaceText) && opt.array && typeof replaceText[0] !== 'object') {
     replaceText = replaceText.filter(Boolean).join(opt.array);
   }
-  if (typeof replaceText === 'object') replaceText = tools.textify(replaceText, { crlf: false });
+  // if (typeof replaceText === 'object') replaceText = tools.textify(replaceText, { crlf: false }); // WHY no crlf?
+  if (typeof replaceText === 'object') replaceText = tools.textify(replaceText); // WHY no crlf?
 
 
   if (typeof replaceText === 'string' && opt.crlf !== undefined) {
