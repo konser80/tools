@@ -30,19 +30,20 @@ function onTimer(url) {
   if (DEBUG) log.trace('[+] notify: sending array');
   if (DEBUG) log.trace(array);
 
-  Object.keys(array).forEach((key) => {
+  Object.keys(array).forEach(async (key) => {
     let text = key;
     if (array[key] > 1) text += ` [count: ${array[key]}]`;
 
     if (DEBUG) log.trace(`[ ] sending text: ${text}`);
     const payload = { txt: text };
-
+    
     // ready? send!
     try {
-      axios.post(url, payload);
+      await axios.post(url, payload);
+      if (DEBUG) log.trace(`[+] sent text`);
     }
     catch (err) {
-      if (DEBUG) log.error(`[-] notify error: ${err.message}`);
+      log.warn(` notify: ${err.message}`);
     }
   });
 
