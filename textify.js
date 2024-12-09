@@ -17,7 +17,8 @@ function textify(obj, _opt = {}) {
     dateformat: 'YYYY-MM-DD HH:mm:ss',
     tz: undefined,
     autosort: false,
-    sort: false
+    sort: false,
+    skipunderscore: false
   },
   ..._opt };
 
@@ -64,12 +65,12 @@ function textify(obj, _opt = {}) {
 
     if (opt.autosort) {
       if (DEBUG) console.log(`trying to smart sort keys`);
-      const sorted = smartSortObjectKeys(obj);
+      const sorted = smartSortObjectKeys(obj, opt);
       if (DEBUG) console.log(sorted);
       res = util.inspect(sorted, params);
     }
     else if (opt.sort) {
-      const sorted = sortObjectKeys(obj);
+      const sorted = sortObjectKeys(obj, opt);
       res = util.inspect(sorted, params);
     }
     else {
@@ -106,7 +107,7 @@ function sortObjectKeys(obj) {
 }
 
 // =============================================================
-function smartSortObjectKeys(obj) {
+function smartSortObjectKeys(obj, params = {}) {
   // Check if the input is not an object or is an array
   if (typeof obj !== 'object' || Array.isArray(obj)) return obj;
 
@@ -115,6 +116,8 @@ function smartSortObjectKeys(obj) {
   const objectKeys = [];
 
   Object.keys(obj).forEach((key) => {
+    if (params.skipunderscore && key.startsWith('_')) return;
+
     if (typeof obj[key] === 'object' && obj[key] !== null && !isDate(obj[key])) {
       objectKeys.push(key);
     }

@@ -133,54 +133,60 @@ function smartReplace(obj, strPath, opt) {
 
 // ==============================================
 function multiReplace(object, strPath, opt) {
-  if (DEBUG) console.log(`multiReplace '${strPath}'`);
+  if (DEBUG) console.log(`call multiReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
   let subres = {};
 
 
-  // what to do if dateDiff contains pathReplace?
+  let pathFound;
   do {
-    subres = dateDiffReplace(object, res.str, opt);
-    res.found += subres.found;
-    res.replaced += subres.replaced;
-    res.str = subres.str;
-  } while (subres.found > 0);
+    // Шаг 1: Прогоняем dateDiffReplace, randomReplace, uuidReplace, asNumberReplace
+    do {
+      let subres;
+      // dateDiffReplace
+      subres = dateDiffReplace(object, res.str, opt);
+      res.found += subres.found;
+      res.replaced += subres.replaced;
+      res.str = subres.str;
+  
+      // randomReplace
+      subres = randomReplace(res.str);
+      res.found += subres.found;
+      res.replaced += subres.replaced;
+      res.str = subres.str;
+  
+      // uuidReplace
+      subres = uuidReplace(res.str);
+      res.found += subres.found;
+      res.replaced += subres.replaced;
+      res.str = subres.str;
+  
+      // asNumberReplace
+      subres = asNumberReplace(object, res.str, opt);
+      res.found += subres.found;
+      res.replaced += subres.replaced;
+      res.str = subres.str;
+    } while (subres.found > 0);
+  
+    // Шаг 2: pathReplace один раз
+    const pathRes = pathReplace(object, res.str, opt);
+    res.found += pathRes.found;
+    res.replaced += pathRes.replaced;
+    res.str = pathRes.str;
+    pathFound = pathRes.found;
+  
+  } while (pathFound > 0); // Повторяем шаги 2-3, пока pathReplace возвращает найденные замены
+  
 
-  do {
-    subres = randomReplace(res.str);
-    res.found += subres.found;
-    res.replaced += subres.replaced;
-    res.str = subres.str;
-  } while (subres.found > 0);
+  if (DEBUG) console.log(`...after multi-loop: ${tools.textify(res)}`);
+  if (DEBUG) console.log(`...multiReplace found: ${res.found}`);
 
-  do {
-    subres = uuidReplace(res.str);
-    res.found += subres.found;
-    res.replaced += subres.replaced;
-    res.str = subres.str;
-  } while (subres.found > 0);
-
-  do {
-    subres = asNumberReplace(object, res.str, opt);
-    res.found += subres.found;
-    res.replaced += subres.replaced;
-    res.str = subres.str;
-  } while (subres.found > 0);
-
-  do {
-    subres = pathReplace(object, res.str, opt);
-    res.found += subres.found;
-    res.replaced += subres.replaced;
-    res.str = subres.str;
-  } while (subres.found > 0);
-
-  if (DEBUG) console.log(`multiReplace found: ${res.found}`);
-
-  if (res.found > 0) subres = multiReplace(object, res.str, opt);
-  res.found += subres.found;
-  res.replaced += subres.replaced;
-  res.str = cleanEmpties(subres.str);
+  // if (res.found > 0) subres = multiReplace(object, res.str, opt);
+  // res.found += subres.found;
+  // res.replaced += subres.replaced;
+  res.str = cleanEmpties(res.str);
+  // res.str = cleanEmpties(subres.str);
 
   if (DEBUG) console.log(`multiReplace returning res: ${tools.textify(res)}`);
   return res;
@@ -222,7 +228,7 @@ function randomReplace(strPath) {
 
   const strfull = regexResult[0];
   const snumber = regexResult[1];
-  const inumber = parseInt(snumber) || 100;
+  const inumber = parseInt(snumber) || 0;
 
   const rnd = Math.round(Math.random() * inumber);
   const srnd = rnd.toString().padStart(snumber.length, '0');

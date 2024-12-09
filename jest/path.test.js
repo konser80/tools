@@ -22,6 +22,7 @@ const user = {
   und: undefined,
   nul: null,
   true: true,
+  ref: 'someid_{rnd.9}',
   false: false,
   empty: '',
   'ИНН': 'inn',
@@ -29,7 +30,7 @@ const user = {
   nums: [12, 14, 16, 18, 20],
   products: {
     main: {
-      start: '2024-09-16 00:00:00'
+      start: '2025-09-16 00:00:00'
     }
   }
 };
@@ -77,6 +78,11 @@ test('getSimpleData', () => {
   expect(tools.replace(obj, '_{user.false}_')).toEqual('_false_');
   expect(tools.replace(obj, '_{user.false}_', { false: '0' })).toEqual('_0_');
 
+  // random
+  expect(tools.replace(obj, '{user.ref}')).toMatch(/^someid_[0-9]$/);
+  expect(tools.replace(obj, '{rnd.9}')).toMatch(/^[0-9]$/);
+  expect(tools.replace(obj, '{rnd.09}')).toMatch(/^0[0-9]$/);
+
   // other types
   expect(tools.replace(obj, '_{user.empty}_')).toEqual('__');
   expect(tools.replace(obj, '_{user.empty}_', { empty: 'no' })).toEqual('_no_');
@@ -120,11 +126,11 @@ test('regex', () => {
 });
 
 test('timeStrings', () => {
-  expect(tools.replace(obj, '{user.products.main.start}')).toEqual('2024-09-16 00:00:00');
-  expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual('2024-09-16 00:00:00');
+  expect(tools.replace(obj, '{user.products.main.start}')).toEqual('2025-09-16 00:00:00');
+  expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual('2025-09-16 00:00:00');
 
-  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('16');
-  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('16');
+  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('9');
+  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('9');
 });
 
 test('complexStrings', () => {
