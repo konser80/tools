@@ -9,7 +9,8 @@ const tools = require('./index');
 
 const DEBUG = false;
 
-const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
+const REG_MINI = /\{(?<bool>!{0,2})(?<sub>\/.*?\/)?(?<main>[a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
+// const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REGEX_ASNUMBER = /\{([a-zа-я0-9_.[\]{}]+)\.asnumber}/gi;
@@ -393,7 +394,7 @@ function pathReplace(object, strPath, opt) {
 
   const res = { str: strPath, found: 0, replaced: 0 };
   REG_MINI.lastIndex = 0;
-  // const REG_MINI = /\{(\/.*?\/)?([a-zа-я0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9:_.[\]]*?)\}/gi;
+
   const regexResult = REG_MINI.exec(strPath);
   if (DEBUG) console.debug('regexResult', regexResult);
   if (!regexResult) return res;
@@ -402,8 +403,9 @@ function pathReplace(object, strPath, opt) {
   if (DEBUG) console.log(`pathReplace ${tools.textify(regexResult)}`);
 
   const strfull = regexResult[0];
-  const sregex = regexResult[1];
-  const objpath = regexResult[2];
+  const subRegex = regexResult.groups.sub;
+  const objpath = regexResult.groups.main;
+  const truefalse = regexResult.groups.bool;
   regexResult.lastIndex = 0;
 
   // get value
@@ -411,6 +413,9 @@ function pathReplace(object, strPath, opt) {
   if (DEBUG) console.debug(`[ ] replaceText (before): '${typeof replaceText}' ${tools.textify(replaceText)}`);
 
   // replaceText could be ANY type
+
+  // if we have true-false flag
+  if (truefalse) replaceText = filterTrueFalse(truefalse, replaceText, opt);
 
   if (replaceText === '') replaceText = opt.empty;
   if (replaceText === null) replaceText = opt.null;
@@ -479,7 +484,10 @@ function pathReplace(object, strPath, opt) {
   // replaceText = replaceText.toString().trim();
 
   // if we have sub-regex, apply it
-  replaceText = applySubRegex(replaceText, sregex);
+  replaceText = applySubRegex(replaceText, subRegex);
+
+  // if we have true-false flag
+  // replaceText = filterTrueFalse(truefalse, replaceText, opt);
 
   res.str = strPath.replace(strfull, replaceText);
   if (replaceText !== '' && replaceText !== null) res.replaced = 1;
@@ -495,6 +503,20 @@ function cleanEmpties(strPath) {
   out = out.replace(/\n{3,}/gm, '\n\n');
   // out = out.trim(); // NEVER do trim
   return out;
+}
+// ==============================================
+function filterTrueFalse(filter, input, opt) {
+  let res = input;
+
+  if (filter === '!') {
+    res = (!input) ? opt.true : opt.false;
+    if (DEBUG) console.debug(`[ ] ...apply true-false (${filter}) filter: ${res}`);
+  }
+  else if (filter === '!!') {
+    res = (input) ? opt.true : opt.false;
+    if (DEBUG) console.debug(`[ ] ...apply true-false (${filter}) filter: ${res}`);
+  }
+  return res;
 }
 
 // ==============================================

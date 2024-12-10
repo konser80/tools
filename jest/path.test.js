@@ -77,6 +77,13 @@ test('getSimpleData', () => {
 
   expect(tools.replace(obj, '_{user.false}_')).toEqual('_false_');
   expect(tools.replace(obj, '_{user.false}_', { false: '0' })).toEqual('_0_');
+  
+  // true-false
+  expect(tools.replace(obj, '_{!user.username}_')).toEqual('_false_');
+  expect(tools.replace(obj, '_{!!user.username}_')).toEqual('_true_');
+  expect(tools.replace(obj, '_{!!msg}_')).toEqual('_true_');
+  expect(tools.replace(obj, '_{!user.null}_')).toEqual('_true_');
+  expect(tools.replace(obj, '_{!!user.null}_')).toEqual('_false_');
 
   // random
   expect(tools.replace(obj, '{user.ref}')).toMatch(/^someid_[0-9]$/);
