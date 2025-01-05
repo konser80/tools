@@ -573,7 +573,7 @@ function doSpell(timeDifference, _lang = 'ru') {
 
   if (DEBUG) console.debug(`doSpell ${years} years, ${months} months, ${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`);
 
-  if (years > 0) return `${years} ${spellTimeframe(months, 'y', lang)}`;
+  if (years > 0) return `${years} ${spellTimeframe(years, 'y', lang)}`;
   if (months > 0) return `${months} ${spellTimeframe(months, 'M', lang)}`;
   if (days > 0) return `${days} ${spellTimeframe(days, 'd', lang)}`;
   if (hours > 0) return `${hours} ${spellTimeframe(hours, 'h', lang)}`;
@@ -584,6 +584,7 @@ function doSpell(timeDifference, _lang = 'ru') {
 }
 // ==============================
 function spellTimeframe(num, char, lang) {
+  if (DEBUG) console.debug(`spellTimeframe ${num} ${char} ${lang}`);
 
   const p = {
     ru: {
