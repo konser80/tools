@@ -6,6 +6,7 @@ dayjs.extend(require('dayjs/plugin/timezone'));
 
 const validate = require('./validate');
 const tools = require('./index');
+const log = tools.logger('silly');
 
 const DEBUG = false;
 
@@ -26,7 +27,7 @@ const REGEX_DIGITS = /^(\d+)$/;
 
 // ==============================================
 function objectReplace(obj, somedata, options) {
-  if (DEBUG) console.debug(`objectReplace "${somedata}"`);
+  if (DEBUG) log.info(`objectReplace "${somedata}"`);
 
   if (somedata === undefined
     || somedata === null
@@ -137,38 +138,49 @@ function multiReplace(object, strPath, opt) {
   if (DEBUG) console.log(`call multiReplace '${strPath}'`);
 
   const res = { str: strPath, found: 0, replaced: 0 };
-  let subres = {};
-
+  // let subres = {};
 
   let pathFound;
   do {
     // Шаг 1: Прогоняем dateDiffReplace, randomReplace, uuidReplace, asNumberReplace
+    let internalLoopCounter;
+
     do {
+      if (DEBUG) log.trace(`...multiReplace start internal loop`);
+
       let subres;
+      internalLoopCounter = 0;
+
       // dateDiffReplace
       subres = dateDiffReplace(object, res.str, opt);
       res.found += subres.found;
+      internalLoopCounter += subres.found;
       res.replaced += subres.replaced;
       res.str = subres.str;
   
       // randomReplace
       subres = randomReplace(res.str);
       res.found += subres.found;
+      internalLoopCounter += subres.found;
       res.replaced += subres.replaced;
       res.str = subres.str;
   
       // uuidReplace
       subres = uuidReplace(res.str);
       res.found += subres.found;
+      internalLoopCounter += subres.found;
       res.replaced += subres.replaced;
       res.str = subres.str;
   
       // asNumberReplace
       subres = asNumberReplace(object, res.str, opt);
       res.found += subres.found;
+      internalLoopCounter += subres.found;
       res.replaced += subres.replaced;
       res.str = subres.str;
-    } while (subres.found > 0);
+
+      if (DEBUG) log.trace(`...multiReplace internal loop found: ${internalLoopCounter}`);
+    } while (internalLoopCounter > 0);
   
     // Шаг 2: pathReplace один раз
     const pathRes = pathReplace(object, res.str, opt);
@@ -225,7 +237,7 @@ function randomReplace(strPath) {
   if (!regexResult) return res;
 
   res.found = 1;
-  if (DEBUG) console.debug(`randomReplace ${strPath}`);
+  if (DEBUG) log.trace(`...randomReplace regex match OK`);
 
   const strfull = regexResult[0];
   const snumber = regexResult[1];

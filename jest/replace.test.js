@@ -1,4 +1,5 @@
 const tools = require('../index');
+const dayjs = require('dayjs');
 
 const message = {
   text: 'some text here and 123 nums ',
@@ -30,7 +31,7 @@ const user = {
   nums: [12, 14, 16, 18, 20],
   products: {
     main: {
-      start: '2025-09-16 00:00:00'
+      // start: '2025-09-16 00:00:00'
     }
   }
 };
@@ -57,6 +58,9 @@ const obj = {
   i1: 'i1',
 };
 
+// for after/before test
+obj.user.products.main.start = dayjs().add(9, 'month').add(3, 'day').format('YYYY-MM-DD HH:mm:ss');
+
 
 test('getSimpleData', () => {
 
@@ -70,6 +74,9 @@ test('getSimpleData', () => {
   // root
   expect(tools.replace(obj, '_{_key}_')).toEqual('_15_');
   expect(tools.replace(obj, '_{i1}_')).toEqual('_i1_');
+  expect(tools.replace(obj, '_{_key}_{_key}_{_key}_')).toEqual('_15_15_15_');
+
+  // multi-key
 
   // bool
   expect(tools.replace(obj, '_{user.true}_')).toEqual('_true_');
@@ -89,6 +96,7 @@ test('getSimpleData', () => {
   expect(tools.replace(obj, '{user.ref}')).toMatch(/^someid_[0-9]$/);
   expect(tools.replace(obj, '{rnd.9}')).toMatch(/^[0-9]$/);
   expect(tools.replace(obj, '{rnd.09}')).toMatch(/^0[0-9]$/);
+  expect(tools.replace(obj, '{rnd.09}_{rnd.09}')).toMatch(/^0[0-9]_0[0-9]$/);
 
   // other types
   expect(tools.replace(obj, '_{user.empty}_')).toEqual('__');
@@ -133,8 +141,8 @@ test('regex', () => {
 });
 
 test('timeStrings', () => {
-  expect(tools.replace(obj, '{user.products.main.start}')).toEqual('2025-09-16 00:00:00');
-  expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual('2025-09-16 00:00:00');
+  expect(tools.replace(obj, '{user.products.main.start}')).toEqual(obj.user.products.main.start);
+  expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual(obj.user.products.main.start);
 
   expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('9');
   expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('9');
