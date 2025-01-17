@@ -74,9 +74,9 @@ test('getSimpleData', () => {
   // root
   expect(tools.replace(obj, '_{_key}_')).toEqual('_15_');
   expect(tools.replace(obj, '_{i1}_')).toEqual('_i1_');
-  expect(tools.replace(obj, '_{_key}_{_key}_{_key}_')).toEqual('_15_15_15_');
-
+  
   // multi-key
+  expect(tools.replace(obj, '_{_key}_{_key}_{_key}_')).toEqual('_15_15_15_');
 
   // bool
   expect(tools.replace(obj, '_{user.true}_')).toEqual('_true_');
@@ -161,4 +161,11 @@ test('complexStrings', () => {
   expect(tools.replace(obj, '_{?Name: {user.fullname}!}_')).toEqual('_Name: Max!_');
   expect(tools.replace(obj, '_{?Name: {user.full1name}!}_')).toEqual('__');
   expect(tools.replace(obj, '_{?n1: {smth.new}}_{?n2: {smth2.new2}}_')).toEqual('___');
+  expect(tools.replace(obj, '_{?n1: {smth.new} and n2:{smth2.new2}}_')).toEqual('__');
+  
+  // question with bool
+  expect(tools.replace(obj, '_{?name:{!!user.fullname}}_')).toEqual('_name:true_');
+  expect(tools.replace(obj, '_{?name:{!user.fullname}}_')).toEqual('_name:false_');
+  expect(tools.replace(obj, '_{?name:{!!user.doesntexists}}_')).toEqual('_name:false_');
+
 });

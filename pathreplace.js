@@ -12,7 +12,7 @@ const DEBUG = false;
 
 const REG_MINI = /\{(?<bool>!{0,2})(?<sub>\/.*?\/)?(?<main>[a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
 // const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
-const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
+const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9!_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REGEX_ASNUMBER = /\{([a-zа-я0-9_.[\]{}]+)\.asnumber}/gi;
 const REG_DIFF = /\{(?<pre>\/.*?\/)?(?<path>[a-zа-я0-9_.[\]{}]+)\.(?<ab>after|before)\.(?<tf>seconds?|minutes?|hours?|days?|weeks?|months?|years?|timeframes?|spell\.?(?<lang>[a-z]{2})?)\}/gi;
