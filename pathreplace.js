@@ -6,7 +6,7 @@ dayjs.extend(require('dayjs/plugin/timezone'));
 
 const validate = require('./validate');
 const tools = require('./index');
-const log = tools.logger('silly');
+// const log = tools.logger('silly');
 
 const DEBUG = false;
 
@@ -27,7 +27,7 @@ const REGEX_DIGITS = /^(\d+)$/;
 
 // ==============================================
 function objectReplace(obj, somedata, options) {
-  if (DEBUG) log.info(`objectReplace "${somedata}"`);
+  if (DEBUG) console.log(`objectReplace "${somedata}"`);
 
   if (somedata === undefined
     || somedata === null
@@ -146,7 +146,7 @@ function multiReplace(object, strPath, opt) {
     let internalLoopCounter;
 
     do {
-      if (DEBUG) log.trace(`...multiReplace start internal loop`);
+      if (DEBUG) console.debug(`...multiReplace start internal loop`);
 
       let subres;
       internalLoopCounter = 0;
@@ -179,7 +179,7 @@ function multiReplace(object, strPath, opt) {
       res.replaced += subres.replaced;
       res.str = subres.str;
 
-      if (DEBUG) log.trace(`...multiReplace internal loop found: ${internalLoopCounter}`);
+      if (DEBUG) console.debug(`...multiReplace internal loop found: ${internalLoopCounter}`);
     } while (internalLoopCounter > 0);
   
     // Шаг 2: pathReplace один раз
@@ -237,7 +237,7 @@ function randomReplace(strPath) {
   if (!regexResult) return res;
 
   res.found = 1;
-  if (DEBUG) log.trace(`...randomReplace regex match OK`);
+  if (DEBUG) console.debug(`...randomReplace regex match OK`);
 
   const strfull = regexResult[0];
   const snumber = regexResult[1];

@@ -1,3 +1,5 @@
+if (global.DEBUG) console.log(`[r] require tools/logger.js`);
+
 const log4js = require('log4js');
 const dayjs = require('dayjs');
 const { timetotf } = require('./timeframes');
@@ -10,9 +12,11 @@ const cache = {};
 
 // ==============================================
 function configureLogger(minlevel = 'silly', opts = {}) {
+  if (global.DEBUG) console.log(`[r] call logger.configureLogger: minlevel=${minlevel}, opts=${JSON.stringify(opts)}`);
 
   let tracePattern = 'yyyy-MM-dd';
   if (opts.hourly === true) tracePattern = 'yyyy-MM-dd-hh0000';
+  const prefix = (opts.prefix || '').toString();
 
   const layout = { type: 'pretty' };
   log4js.addLayout('pretty', () => formatLog4JS);
@@ -26,24 +30,16 @@ function configureLogger(minlevel = 'silly', opts = {}) {
       tracefile: {
         layout,
         type: 'dateFile',
-        filename: 'logs/trace.log',
+        filename: `logs/${prefix}trace.log`,
         pattern: `old/yyyy-MM/${tracePattern}`,
         keepFileExt: true,
         // numBackups: 5
       },
 
-      // debugfile: {
-      //   layout,
-      //   type: 'dateFile',
-      //   filename: 'logs/debug.log',
-      //   pattern: 'old/yyyy-MM/yyyy-MM-dd',
-      //   keepFileExt: true
-      // },
-
       errorfile: {
         layout,
         type: 'dateFile',
-        filename: 'logs/error.log',
+        filename: `logs/${prefix}error.log`,
         pattern: 'old/yyyy-MM',
         keepFileExt: true
       },
@@ -70,6 +66,7 @@ function configureLogger(minlevel = 'silly', opts = {}) {
 }
 // ==============================================
 function configureConsole() {
+  if (global.DEBUG) console.log(`[r] call logger.configureConsole`);
 
   const consoleMethods = ['debug', 'log', 'info', 'warn', 'error'];
   consoleMethods.forEach((name) => {

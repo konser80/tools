@@ -1,6 +1,10 @@
+// global.DEBUG = true;
+if (global.DEBUG) console.log(`[r] require tools/index.js`);
+
 const loggerModule = require('./logger');
 
 // configureConsole
+if (global.DEBUG) console.log(`[r] index: calling loggerModule.init()`);
 loggerModule.init();
 
 module.exports.logger = loggerModule.logger;
