@@ -66,6 +66,8 @@ function parseObject(obj, src, defaultkey, replaceOptions) {
 
   // not an object - just a key
   const res = {};
+  if (defaultkey === null) return res;
+
   res[defaultkey || '_notparsed'] = replace(obj, src, replaceOptions);
   return res;
 }
