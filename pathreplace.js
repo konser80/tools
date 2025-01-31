@@ -574,7 +574,7 @@ function randomTextReplace(obj, str, opt) {
 // ==============================================
 function doSpell(timeDifference, _lang = 'ru') {
   const lang = (_lang === 'ru') ? 'ru' : 'en';
-  if (DEBUG) console.debug(`doSpell timeDifference ${timeDifference}`);
+  if (DEBUG) console.debug(`doSpell timeDifference ${timeDifference}, lang ${lang} (${_lang})`);
 
   const years = Math.floor(timeDifference / (60 * 60 * 24 * 365));
   const months = Math.floor(timeDifference / (60 * 60 * 24 * 30));
@@ -592,7 +592,7 @@ function doSpell(timeDifference, _lang = 'ru') {
   if (minutes > 0) return `${minutes} ${spellTimeframe(minutes, 'm', lang)}`;
   if (seconds >= 0) return `${seconds} ${spellTimeframe(seconds, 's', lang)}`;
 
-  return `${0} ${spellTimeframe(0, 'm', 'ru')}`;
+  return `${0} ${spellTimeframe(0, 'm', lang)}`;
 }
 // ==============================
 function spellTimeframe(num, char, lang) {
