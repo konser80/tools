@@ -110,6 +110,9 @@ and a third lines`);
     expect(replace(obj, '{?Missing email {user.email}}')).toEqual('');
     expect(replace(obj, '{?Promo code: {products.{user.name}.refby.{user.email}}}')).toEqual('');
 
+    // important
+    expect(replace(obj, '(?<sum>[0-9]{0,6})')).toEqual('(?<sum>[0-9]{0,6})');
+
     // other types
     expect(replace(obj, '_{user.empty}_')).toEqual('__');
     expect(replace(obj, '_{user.empty}_', { empty: 'no' })).toEqual('_no_');

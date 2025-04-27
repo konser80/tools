@@ -136,8 +136,8 @@ function processPlaceholders(obj, text, opt, depth = 0) {
     if (!isValidPath(`{${rawPlaceholder}}`)) {
       if (DEBUG) console.debug(`Invalid placeholder path: "${rawPlaceholder}"`);
       // Просто вставляем как текст без замены
-      result += text[cursor];
-      cursor += 1;
+      result += '{';
+      cursor = match.start +1;
       if (DEBUG) console.debug(`... ${result}`);
       // eslint-disable-next-line no-continue
       continue;
