@@ -3,6 +3,8 @@ const dayjs = require('dayjs');
 dayjs.extend(require('dayjs/plugin/utc'));
 dayjs.extend(require('dayjs/plugin/timezone'));
 const tools = require('./index');
+const validate = require('./validate');
+const { isDateTime } = validate;
 
 const REGEX_PLACEHOLDER = /\{(?<bool>!{1,2})?(?<sub>\/.*?\/)?(?<path>[a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/i;
 
@@ -615,26 +617,6 @@ function applyRandomReplace(src, opt) {
   return result;
 }
 
-// ==============================================
-function isDateTime(value) {
-  if (value instanceof Date) {
-    return !Number.isNaN(value.getTime());
-  }
-
-  if (typeof value !== 'string') return false;
-
-  // Проверка, что строка похожа на дату
-  const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?)?/;
-  if (!ISO_DATE_REGEX.test(value)) {
-    return false;
-  }
-
-  const date = new Date(value);
-  const res = !Number.isNaN(date.getTime());
-
-  if (DEBUG) console.log(`isDateTime() => ${res}`);
-  return res;
-}
 // ==============================================
 function getDefaultParams(params) {
   if (DEBUG) console.log(`getDefaultParams()`);

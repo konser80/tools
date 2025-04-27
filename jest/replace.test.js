@@ -253,7 +253,7 @@ describe('Deep (nested) replacement', () => {
   });
 
   test('nested with date', () => {
-    expect(replace(obj, '_{dates.somedate}_')).toEqual('_2025-04-27 00:00:00_');
+    expect(replace(obj, '_{dates.somedate}_')).toEqual('_2025-04-27_');
     expect(replace(obj, '_{dates.somedate}_', { date: false })).toEqual('_2025-04-27_');
     expect(replace(obj, '_{stat.{dates.somedate}.total}_')).toEqual('_55_');
   });
