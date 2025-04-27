@@ -48,7 +48,7 @@ function parseObject(obj, src, defaultkey, replaceOptions) {
     let jdata;
     try {
       const params = { ...{ crlf: '\\n', escape: '\\"' }, ...replaceOptions };
-      jdata = replace(obj, src, params); // eslint-disable-line
+      jdata = replace(obj, src, params);
       jdata = JSON.parse(jdata || '{}');
       jdata = deepStringFn(jdata, (item) => item.replace(/\\n/g, '\n'));
 

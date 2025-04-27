@@ -1,171 +1,271 @@
 const tools = require('../index');
+const { replace } = tools;
+
 const dayjs = require('dayjs');
 
-const message = {
-  text: 'some text here and 123 nums ',
-  dollar: 'with $&gt; symbols',
-  chat: {
-    id: 'chatID',
-    title: 'chat_title'
-  },
+const now = dayjs();
+const yesterday = now.subtract(1, 'day');
+const tomorrow = now.add(1, 'day');
+const lastWeek = now.subtract(7, 'days');
+const nextMonth = now.add(1, 'month');
+
+const obj = {
+  _key: 15,
   user: {
-    username: '@somename',
-    id: 123
-  }
-};
-const user = {
-  id: 1234,
-  age: 40,
-  username: '@somename',
-  'user-name': 'DASH',
-  fullname: 'Max',
-  _lodash: 1,
-  und: undefined,
-  nul: null,
-  true: true,
-  ref: 'someid_{rnd.9}',
-  false: false,
-  empty: '',
-  'ИНН': 'inn',
-  codes: ['code1', 'code2', 'code3'],
-  nums: [12, 14, 16, 18, 20],
+    id: 1234,
+    name: 'John Doe',
+    firstname: 'John',
+    lastname: 'Doe',
+    username: 'john_doe',
+    true: true,
+    false: false,
+    null: null,
+    undef: undefined,
+    empty: '',
+    lang: 'en',
+    ИНН: 'inn', // тест на кириллицу
+    birthday: lastWeek.toISOString(),
+    hobbies: ['chess', 'music', 'reading'],
+
+  },
+  sms: '{msg.text_{user.lang}}',
   products: {
-    main: {
-      // start: '2025-09-16 00:00:00'
+    John: {
+      expiration: nextMonth.toISOString(),
+      views: 12500,
+      title: 'MegaProduct',
+      price: '$2',
+    },
+  },
+  msg: {
+    text_en: 'Your OTP is: 4750, do not send it anyone',
+    hint: 'with $&gt; symbols'
+  },
+  dates: {
+    today: now.toISOString(),
+    tomorrow: tomorrow.toISOString(),
+    yesterday: yesterday.toISOString(),
+    somedate: '2025-04-27'
+  },
+  posts: [{ id: 12 }],
+  sizes: [12, 14, 16, 18, 20],
+  stat: {
+    '2025-04-27': {
+      total: 55
     }
   }
 };
-const date = {
-  day: 11,
-  month: 3,
-  year: 2021
-};
-const arr1 = ['a0', 'a1', 'a2'];
-const arr2 = [{
-  key: 'k0'
-},
-{
-  key: 'k1'
-}];
-const obj = {
-  msg: message,
-  user,
-  date,
-  arr1,
-  arr2,
-  invoice: { name: 'main' },
-  _key: 15,
-  i1: 'i1',
-};
 
-// for after/before test
-obj.user.products.main.start = dayjs().add(9, 'month').add(3, 'day').format('YYYY-MM-DD HH:mm:ss');
+describe('Get simple data (basic replacements)', () => {
 
+  test('root keys', () => {
+    expect(replace(obj, '_{_key}_')).toEqual('_15_');
+  });
 
-test('getSimpleData', () => {
+  test('simple data', () => {
+    expect(replace(obj, '_{user.id}!')).toEqual('_1234!');
+    expect(replace(obj, '_{user.name}!')).toEqual('_John Doe!');
+    expect(replace(obj, '_{user.name}!')).toEqual('_John Doe!');
 
-  expect(tools.replace(obj, '_{user.id}!')).toEqual('_1234!');
-  expect(tools.replace(obj, '_{user._lodash}_')).toEqual('_1_');
-  expect(tools.replace(obj, '_{user.user-name}_')).toEqual('_DASH_');
-  expect(tools.replace(obj, '_{user.age}_')).toEqual('_40_');
-  expect(tools.replace(obj, '_{user.ИНН}_')).toEqual('_inn_');
-  expect(tools.replace(obj, '_{msg.dollar}_')).toEqual('_with $&gt; symbols_');
+    expect(replace(obj, '_{products.John.price}_')).toEqual('_$2_');
+    expect(replace(obj, '_{msg.hint}_')).toEqual('_with $&gt; symbols_');
+    
+  });
 
-  // root
-  expect(tools.replace(obj, '_{_key}_')).toEqual('_15_');
-  expect(tools.replace(obj, '_{i1}_')).toEqual('_i1_');
+  test('cyrillic', () => {
+    expect(replace(obj, '_{user.ИНН}_')).toEqual('_inn_');
+  });
+
+  test('multi-key', () => {
+    expect(replace(obj, '_{_key}_{_key}_{_key}_')).toEqual('_15_15_15_');
+  });
+
+  test('random', () => {
+    // random
+    expect(replace(obj, '{rnd.9}')).toMatch(/^[0-9]$/);
+    expect(replace(obj, '{rnd.09}')).toMatch(/^0[0-9]$/);
+    expect(replace(obj, '{rnd.09}_{rnd.09}')).toMatch(/^0[0-9]_0[0-9]$/);
+  });
+
+  test('missing or undefined keys', () => {
+    expect(replace(obj, '_{user.address}_')).toEqual('__');
+    expect(replace(obj, '_{products.orange.status}_')).toEqual('__');
+    expect(replace(obj, '_{products.{user.name}.refby.unknown_user}_')).toEqual('__');
+    expect(replace(obj, '{?Missing email {user.email}}')).toEqual('');
+    expect(replace(obj, '{?Promo code: {products.{user.name}.refby.{user.email}}}')).toEqual('');
+
+    // other types
+    expect(replace(obj, '_{user.empty}_')).toEqual('__');
+    expect(replace(obj, '_{user.empty}_', { empty: 'no' })).toEqual('_no_');
   
-  // multi-key
-  expect(tools.replace(obj, '_{_key}_{_key}_{_key}_')).toEqual('_15_15_15_');
-
-  // bool
-  expect(tools.replace(obj, '_{user.true}_')).toEqual('_true_');
-  expect(tools.replace(obj, '_{user.true}_', { true: '1' })).toEqual('_1_');
-
-  expect(tools.replace(obj, '_{user.false}_')).toEqual('_false_');
-  expect(tools.replace(obj, '_{user.false}_', { false: '0' })).toEqual('_0_');
+    expect(replace(obj, '_{user.undef}_')).toEqual('__');
+    expect(replace(obj, '_{user.undef}_', { undefined: '#' })).toEqual('_#_');
   
-  // true-false
-  expect(tools.replace(obj, '_{!user.username}_')).toEqual('_false_');
-  expect(tools.replace(obj, '_{!!user.username}_')).toEqual('_true_');
-  expect(tools.replace(obj, '_{!!msg}_')).toEqual('_true_');
-  expect(tools.replace(obj, '_{!user.null}_')).toEqual('_true_');
-  expect(tools.replace(obj, '_{!!user.null}_')).toEqual('_false_');
-
-  // random
-  expect(tools.replace(obj, '{user.ref}')).toMatch(/^someid_[0-9]$/);
-  expect(tools.replace(obj, '{rnd.9}')).toMatch(/^[0-9]$/);
-  expect(tools.replace(obj, '{rnd.09}')).toMatch(/^0[0-9]$/);
-  expect(tools.replace(obj, '{rnd.09}_{rnd.09}')).toMatch(/^0[0-9]_0[0-9]$/);
-
-  // other types
-  expect(tools.replace(obj, '_{user.empty}_')).toEqual('__');
-  expect(tools.replace(obj, '_{user.empty}_', { empty: 'no' })).toEqual('_no_');
-
-  expect(tools.replace(obj, '_{user.und}_')).toEqual('__');
-  expect(tools.replace(obj, '_{user.und}_', { undefined: '#' })).toEqual('_#_');
-
-  expect(tools.replace(obj, '_{user.nul}_')).toEqual('__');
-  expect(tools.replace(obj, '_{user.nul}_', { null: '*' })).toEqual('_*_');
-
-  // not exists
-  expect(tools.replace(obj, '_{user.notexists}_')).toEqual('__');
-  expect(tools.replace(obj, '_{use1r.notexists}_')).toEqual('__');
-
-});
-
-test('arrays', () => {
-
-  expect(tools.replace(obj, '_{user.codes[1]}_')).toEqual('_code2_');
-  expect(tools.replace(obj, '_{arr2[0].key}_')).toEqual('_k0_');
-
-  expect(tools.replace(obj, '_{user.nums}_')).toEqual('_[ 12, 14, 16, 18, 20 ]_');
-  expect(tools.replace(obj, '_{user.nums}_', { array: ',' })).toEqual('_12,14,16,18,20_');
-  expect(tools.replace(obj, '_{user.nums}_', { array: ', ' })).toEqual('_12, 14, 16, 18, 20_');
-
-  expect(tools.replace(obj, '_{user.codes}_')).toEqual(`_[ 'code1', 'code2', 'code3' ]_`); // eslint-disable-line
-  expect(tools.replace(obj, '_{user.codes}_', { array: ', ' })).toEqual('_code1, code2, code3_');
-
-});
-
-test('regex', () => {
-
-  expect(tools.replace(obj, '{/@(.+)/user.username}')).toEqual('somename');
-  expect(tools.replace(obj, 'n{/([0-9]+)/msg.text}')).toEqual('n123');
-  expect(tools.replace(obj, '{/and ([0-9]+) num/msg.text}')).toEqual('123');
-  // case sensitive?
-  expect(tools.replace(obj, '{/And ([0-9]+) num/msg.text}')).toEqual('123');
-  // null result of subregex
-  expect(tools.replace(obj, '_{/and ([4-9]+) num/msg.text}!')).toEqual('_!');
-
-});
-
-test('timeStrings', () => {
-  expect(tools.replace(obj, '{user.products.main.start}')).toEqual(obj.user.products.main.start);
-  expect(tools.replace(obj, '{user.products.{invoice.name}.start}')).toEqual(obj.user.products.main.start);
-
-  expect(tools.replace(obj, '{user.products.main.start.before.months}')).toEqual('9');
-  expect(tools.replace(obj, '{user.products.{invoice.name}.start.before.months}')).toEqual('9');
-});
-
-test('complexStrings', () => {
-
-  // separate strings
-  expect(tools.replace(obj, '{user.fullname} {user.username}')).toEqual('Max @somename');
-
-  // inside
-  expect(tools.replace(obj, '_{user.nums[3]}_')).toEqual('_18_');
-  expect(tools.replace(obj, '_{user.nums[{date.month}]}_')).toEqual('_18_');
-
-  // question strings
-  expect(tools.replace(obj, '_{?Name: {user.fullname}!}_')).toEqual('_Name: Max!_');
-  expect(tools.replace(obj, '_{?Name: {user.full1name}!}_')).toEqual('__');
-  expect(tools.replace(obj, '_{?n1: {smth.new}}_{?n2: {smth2.new2}}_')).toEqual('___');
-  expect(tools.replace(obj, '_{?n1: {smth.new} and n2:{smth2.new2}}_')).toEqual('__');
+    expect(replace(obj, '_{user.null}_')).toEqual('__');
+    expect(replace(obj, '_{user.null}_', { null: '*' })).toEqual('_*_');
   
+    // not exists
+    expect(replace(obj, '_{user.notexists}_')).toEqual('__');
+    expect(replace(obj, '_{use1r.notexists}_')).toEqual('__');
+  });
+
+  test('arrays', () => {
+
+    expect(replace(obj, '_{user.hobbies[1]}_')).toEqual('_music_');
+    expect(replace(obj, '_{posts[0].id}_')).toEqual('_12_');
+    expect(replace(obj, '_{sizes[0]}_')).toEqual('_12_');
+
+    expect(replace(obj, '_{sizes}_')).toEqual('_[ 12, 14, 16, 18, 20 ]_');
+    expect(replace(obj, '_{sizes}_', { array: ',' })).toEqual('_12,14,16,18,20_');
+    expect(replace(obj, '_{sizes}_', { array: ', ' })).toEqual('_12, 14, 16, 18, 20_');
+
+    expect(replace(obj, '_{user.hobbies}_')).toEqual(`_[ 'chess', 'music', 'reading' ]_`);
+    expect(replace(obj, '_{user.hobbies}_', { array: ', ' })).toEqual('_chess, music, reading_');
+  });
+
+});
+
+describe('Boolean replacement and logical negations (!, !!)', () => {
+
+  test('get boolean', () => {
+    expect(replace(obj, '_{user.true}_')).toEqual('_true_');
+    expect(replace(obj, '_{user.true}_', { true: '1' })).toEqual('_1_');
+
+    expect(replace(obj, '_{user.false}_')).toEqual('_false_');
+    expect(replace(obj, '_{user.false}_', { false: '0' })).toEqual('_0_');
+  });
+
+  test('boolean ! & !!', () => {
+    expect(replace(obj, '_{!user.username}_')).toEqual('_false_');
+    expect(replace(obj, '_{!!user.username}_')).toEqual('_true_');
+
+    expect(replace(obj, '_{!!msg}_')).toEqual('_true_');
+    expect(replace(obj, '_{!!msg.text_en}_')).toEqual('_true_');
+    expect(replace(obj, '_{!!msg.count}_')).toEqual('_false_');
+
+    expect(replace(obj, '_{!user.null}_')).toEqual('_true_');
+    expect(replace(obj, '_{!!user.null}_')).toEqual('_false_');
+  });
+});
+
+describe('Suffix operations (toLowerCase, asKMB, length, asNumber)', () => {
+
+  test('toLowerCase', () => {
+    expect(replace(obj, '_{user.name.toLowerCase}_')).toEqual('_john doe_');
+    expect(replace(obj, '_{products.John.title.toLowerCase}_')).toEqual('_megaproduct_');
+    expect(replace(obj, '_{products.John.title.toUpperCase}_')).toEqual('_MEGAPRODUCT_');
+  });
+
+  test('asKMB', () => {
+    expect(replace(obj, '_{products.John.views.asKMB}_')).toEqual('_13K_');
+  });
+
+  test('length', () => {
+    expect(replace(obj, '_{user.hobbies.length}_')).toEqual('_3_');
+    expect(replace(obj, '_{products.John.title.length}_')).toEqual('_11_');
+  });
+
+  test('asNumber', () => {
+    expect(replace(obj, '_{products.John.views}_')).toEqual('_12500_');
+    expect(replace(obj, '_{products.John.views.asNumber}_')).toEqual('_12,500_');
+  });
+});
+
+describe('complexStrings', () => {
+
+  test('separate strings', () => {
+    expect(replace(obj, '{user.firstname} {user.lastname}')).toEqual('John Doe');
+  });
+  
+  test('question strings', () => {
+    expect(replace(obj, '_{?name: {user.firstname}!}_')).toEqual('_name: John!_');
+    expect(replace(obj, '_{?Name: {user.first_name}!}_')).toEqual('__');
+
+    // both
+    expect(replace(obj, '_{?name: {user.firstname} {user.lastname}}_')).toEqual('_name: John Doe_');
+    // one
+    expect(replace(obj, '_{?name: {user.first_name} {user.lastname}}_')).toEqual('__');
+    // none
+    expect(replace(obj, '_{?name: {user.first_name} {user.last_name}}_')).toEqual('__');
+
+    expect(replace(obj, '_{?n1: {user.firstname}},{?n2: {user.lastname}}_')).toEqual('_n1: John,n2: Doe_');
+
+    // inside
+    expect(replace(obj, '_{?Title: {products.{user.firstname}.title}}_')).toEqual('_Title: MegaProduct_');
+  });
+    
   // question with bool
-  expect(tools.replace(obj, '_{?name:{!!user.fullname}}_')).toEqual('_name:true_');
-  expect(tools.replace(obj, '_{?name:{!user.fullname}}_')).toEqual('_name:false_');
-  expect(tools.replace(obj, '_{?name:{!!user.doesntexists}}_')).toEqual('_name:false_');
+  test('question with bool', () => {
+    expect(replace(obj, '_{?name: {!!user.name}}_')).toEqual('_name: true_');
+    expect(replace(obj, '_{?name: {!user.name}}_')).toEqual('_name: false_');
+    expect(replace(obj, '_{?name: {!!user.doesntexists}}_')).toEqual('_name: false_');
+  });
+});
+
+describe('Sub-regexes', () => {
+  
+  test('subregex', () => {
+
+    expect(replace(obj, '{/([0-9]+)/msg.text_{user.lang}}')).toEqual('4750');
+    expect(replace(obj, 'n{/([0-9]+)/msg.text_en}')).toEqual('n4750');
+
+    expect(replace(obj, '{/is: (.+),/msg.text_en}')).toEqual('4750');
+    // case sensitive?
+    expect(replace(obj, '{/IS: (.+),/msg.text_en}')).toEqual('4750');
+    // null result of subregex
+    expect(replace(obj, '^{/null: (.+),/msg.text_en}$')).toEqual('^$');
+
+  });
+});
+
+// console.log(testObj);
+
+describe('Deep (nested) replacement', () => {
+
+  test('nested replacement', () => {
+    expect(replace(obj, 'SMS: {sms}')).toEqual('SMS: Your OTP is: 4750, do not send it anyone');
+  });
+
+  test('nested with date', () => {
+    expect(replace(obj, '_{dates.somedate}_')).toEqual('_2025-04-27 00:00:00_');
+    expect(replace(obj, '_{dates.somedate}_', { date: false })).toEqual('_2025-04-27_');
+    expect(replace(obj, '_{stat.{dates.somedate}.total}_')).toEqual('_55_');
+  });
 
 });
+
+describe('Date formatting and date operations', () => {
+
+  test('date formatting', () => {
+
+    expect(replace(obj, '_{dates.today}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+    expect(replace(obj, '_{user.birthday}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+
+    // default format
+    expect(replace(obj, '_{dates.today}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+
+    // custom format
+    const text = replace(obj, '_{dates.today}_', { dateformat: 'DD/MM/YYYY' });
+    expect(text).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+  });
+
+  test('date after & before', () => {
+
+    const days = parseInt(replace(obj, '_{user.birthday.after.days}_').match(/\d+/)[0], 10);
+    expect(days).toBeGreaterThanOrEqual(7);
+    expect(days).toBeLessThanOrEqual(8);
+
+    const months = parseInt(replace(obj, '_{products.{user.firstname}.expiration.before.months}_').match(/\d+/)[0], 10);
+    expect(months).toBeGreaterThanOrEqual(0);
+    expect(months).toBeLessThanOrEqual(2);
+
+    const hoursAfterToday = parseInt(replace(obj, '_{dates.today.after.hours}_').match(/\d+/)[0], 10);
+    expect(hoursAfterToday).toBeGreaterThanOrEqual(0);
+    expect(hoursAfterToday).toBeLessThanOrEqual(24);
+
+    const hoursBeforeTomorrow = parseInt(replace(obj, '_{dates.tomorrow.before.hours}_').match(/\d+/)[0], 10);
+    expect(hoursBeforeTomorrow).toBeGreaterThanOrEqual(0);
+    expect(hoursBeforeTomorrow).toBeLessThanOrEqual(24);
+  });
+});
+

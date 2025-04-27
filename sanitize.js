@@ -86,7 +86,7 @@ function sanitize(text, englishTolerance = 0.6) {
 
     config.symbols.forEach((symbol) => {
       if (symbol[tokenLang] === SKIP) return;
-      token = token.replace(symbol.twins, symbol[tokenLang]); // eslint-disable-line
+      token = token.replace(symbol.twins, symbol[tokenLang]);
     });
     tokens[idx] = token;
   });

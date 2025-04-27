@@ -4,14 +4,18 @@ const dayjs = require('dayjs');
 dayjs.extend(require('dayjs/plugin/utc'));
 dayjs.extend(require('dayjs/plugin/timezone'));
 
+
 const validate = require('./validate');
 const tools = require('./index');
 // const log = tools.logger('silly');
 
 const DEBUG = false;
 
+// boolean {!user.status}
+// sub-regex {/^(\d+)/user.status}
 const REG_MINI = /\{(?<bool>!{0,2})(?<sub>\/.*?\/)?(?<main>[a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
-// const REG_MINI = /\{(\/.*?\/)?([a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/gi;
+
+// questioned {?status: {user.status}}
 const REG_FULL = /\{\?.*?(\{(\/.*?\/)?[a-z0-9!_[\]]+\.?[a-zа-я_][a-zа-я0-9_.[\]]*?}.*?)+}/gsi;
 const REG_RAND = /\{rnd\.(\d+)\}/gi;
 const REGEX_ASNUMBER = /\{([a-zа-я0-9_.[\]{}]+)\.asnumber}/gi;
@@ -290,7 +294,7 @@ function asNumberReplace(obj, strPath, opt) {
   }
 
   let value = parseFloat(str);
-  if (!isNaN(value)) {
+  if (!Number.isNaN(value)) {
     value = value.toLocaleString('en-US');
 
     if (DEBUG) console.debug(`parsed, replacing '${objpath}' to '${value}'`);
@@ -573,6 +577,7 @@ function randomTextReplace(obj, str, opt) {
 
 // ==============================================
 function doSpell(timeDifference, _lang = 'ru') {
+  // apply default english
   const lang = (_lang === 'ru') ? 'ru' : 'en';
   if (DEBUG) console.debug(`doSpell timeDifference ${timeDifference}, lang ${lang} (${_lang})`);
 

@@ -1,4 +1,4 @@
-const fs = require('fs/promises'); // eslint-disable-line
+const fs = require('fs/promises');
 const dayjs = require('dayjs');
 const path = require('path');
 const { tftotime } = require('./timeframes');
@@ -9,6 +9,7 @@ async function removeOldFiles(folder, older) {
   if (!folder) return false;
   if (!older) return false;
 
+
   const now = dayjs().valueOf();
   const diff = tftotime(older || '30d');
   const earlier = now - diff;
@@ -16,7 +17,7 @@ async function removeOldFiles(folder, older) {
   try {
     await fs.mkdir(folder, { recursive: true });
   }
-  catch (e) {}
+  catch {}
 
   const res = await removeRecursive(earlier, folder);
   return res;

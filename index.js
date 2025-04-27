@@ -11,7 +11,8 @@ module.exports.logger = loggerModule.logger;
 
 module.exports.val = require('./value');
 module.exports.combine = require('./combine');
-module.exports.replace = require('./pathreplace');
+// module.exports.replace = require('./pathreplace');
+module.exports.replace = require('./replace').replace;
 
 // timeframes
 module.exports.tftotime = require('./timeframes').tftotime;
