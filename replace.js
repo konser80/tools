@@ -23,6 +23,10 @@ const DEBUG = false;
 function processText(obj, text, params) {
   if (DEBUG) console.log(`processText: "${text}"`.yellow.bold);
 
+  if (text == null
+    || text === ''
+    || typeof text === 'boolean') return text;
+
   let result = text;
   const opt = getDefaultParams(params);
 
