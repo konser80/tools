@@ -23,9 +23,11 @@ const DEBUG = false;
 function processText(obj, text, params) {
   if (DEBUG) console.log(`processText: "${text}"`.yellow.bold);
 
-  if (text == null
-    || text === ''
-    || typeof text === 'boolean') return text;
+  if (text == null || text === '') return '';
+  if (typeof text === 'boolean') return String(text);
+  if (typeof text === 'number') text = String(text);
+  if (typeof text === 'object') text = JSON.stringify(text);
+  if (typeof text !== 'string') text = String(text);
 
   let result = text;
   const opt = getDefaultParams(params);
@@ -106,7 +108,7 @@ function processConditionalBlock(obj, block, opt) {
 function processPlaceholders(obj, text, opt, depth = 0) {
   if (DEBUG) console.log(`processPlaceholders(depth = ${depth}) "${text}"`);
 
-  if (!text.includes('{')) {
+  if (!text || !text.includes('{')) {
     if (DEBUG) console.debug(`=> nothing to do`);
     return { text, replaced: false };
   }

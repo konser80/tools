@@ -109,6 +109,32 @@ describe('Get simple data (basic replacements)', () => {
     expect(replace(obj, '_{use1r.notexists}_')).toEqual('__');
   });
 
+  test('errors', () => {
+    expect(replace(obj, '')).toEqual('');
+    expect(replace(obj, null)).toEqual('');
+    expect(replace(obj, undefined)).toEqual('');
+    expect(replace(obj, true)).toEqual('true');
+    expect(replace(obj, false)).toEqual('false');
+    expect(replace(obj, '123')).toEqual('123');
+    expect(replace(obj, 555)).toEqual('555');
+    expect(replace(obj, {})).toEqual('');
+    expect(replace(obj, [])).toEqual('[]');
+
+    expect(replace(0, 'a')).toEqual('a');
+    expect(replace('', 'a')).toEqual('a');
+    expect(replace(null, 'a')).toEqual('a');
+    expect(replace(undefined, 'a')).toEqual('a');
+    expect(replace(false, 'a')).toEqual('a');
+    expect(replace({}, 'a')).toEqual('a');
+    expect(replace([], 'a')).toEqual('a');
+
+    expect(replace({}, 'a', null)).toEqual('a');
+    expect(replace({}, 'a', 12)).toEqual('a');
+    expect(replace({}, 'a', false)).toEqual('a');
+    expect(replace({}, 'a', undefined)).toEqual('a');
+  });
+
+
   test('arrays', () => {
 
     expect(replace(obj, '_{user.hobbies[1]}_')).toEqual('_music_');
