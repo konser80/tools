@@ -7,7 +7,7 @@ const validate = require('./validate');
 const { isDateTime } = validate;
 
 const REGEX_PLACEHOLDER = /\{(?<bool>!{1,2})?(?<sub>\/.*?\/)?(?<path>[a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/i;
-const REGEX_DEEP_PLACEHOLDER = /\{(?<bool>!{1,2})?(?<sub>\/.*?\/)?(?<path>[a-zа-я{}_][a-zа-я0-9:{}_\-.[\]]*?)\}/i;
+const REGEX_DEEP_PLACEHOLDER = /^\{(?<bool>!{1,2})?(?<sub>\/.*?\/)?(?<path>[a-zа-я{}_][a-zа-я0-9:{}_\-.[\]]*?)\}$/i;
 
 const REGEX_RND = /^rnd\.(\d+)$/;
 const REGEX_ASNUMBER = /^(?<path>.+)\.asNumber$/;
@@ -136,8 +136,9 @@ function processPlaceholders(obj, text, opt, depth = 0) {
     if (!isValidPath(`{${rawPlaceholder}}`)) {
       if (DEBUG) console.debug(`Invalid placeholder path: "${rawPlaceholder}"`);
       // Просто вставляем как текст без замены
-      result += match.placeholder;
-      cursor = match.end;
+      result += text[cursor];
+      cursor += 1;
+      if (DEBUG) console.debug(`... ${result}`);
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -164,6 +165,7 @@ function processPlaceholders(obj, text, opt, depth = 0) {
 
     result += processedValue ?? '';
     cursor = match.end;
+    if (DEBUG) console.debug(`... ${result}`);
   }
 
   if (DEBUG) console.log(`=> ${result}`.cyan);
@@ -171,7 +173,11 @@ function processPlaceholders(obj, text, opt, depth = 0) {
 }
 // ==============================================
 function isValidPath(path) {
-  return REGEX_DEEP_PLACEHOLDER.test(path);
+  if (DEBUG) console.log(`isValidPath() "${path}"`);
+  const res = REGEX_DEEP_PLACEHOLDER.test(path);
+
+  if (DEBUG) console.debug(`=> ${res}`);
+  return res;
 }
 
 
@@ -219,6 +225,7 @@ function replacer(obj, rawKey, opt, isTopLevel) {
   const match = rawKey.trim().match(REGEX_PLACEHOLDER);
   if (!match || !match.groups?.path) {
     if (DEBUG) console.debug(`=> ""`);
+    // return rawKey;
     return '';
   }
 

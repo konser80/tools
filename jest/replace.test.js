@@ -45,11 +45,14 @@ const obj = {
 just a second
 and a third lines`
   },
-  dates: {
+  date: {
     today: now.toISOString(),
     tomorrow: tomorrow.toISOString(),
     yesterday: yesterday.toISOString(),
-    somedate: '2025-04-27'
+    somedate: '2025-04-27',
+    year: '2025',
+    month: '04',
+    day: '27'
   },
   posts: [{ id: 12 }],
   sizes: [12, 14, 16, 18, 20],
@@ -221,6 +224,18 @@ describe('complexStrings', () => {
   test('separate strings', () => {
     expect(replace(obj, '{user.firstname} {user.lastname}')).toEqual('John Doe');
   });
+
+  test('JSON', () => {
+    expect(replace(obj, '{ "date1": "{date.year}" }')).toEqual(`{ "date1": "2025" }`);
+
+    expect(replace(obj, '{ "date2": "{date.year}-{date.month}" }')).toEqual(`{ "date2": "2025-04" }`);
+
+    expect(replace(obj, '{ "sheet": "{products.John.title}", "date2": "{date.year}-{date.month}" }')).toEqual(`{ "sheet": "MegaProduct", "date2": "2025-04" }`);
+
+    expect(replace(obj, '{ "sheet": "{products.{user.firstname}.title}", "date2": "{date.year}-{date.month}" }')).toEqual(`{ "sheet": "MegaProduct", "date2": "2025-04" }`);
+
+    expect(replace(obj, '{ "good": {user.true} }')).toEqual(`{ "good": true }`);
+  });
   
   test('question strings', () => {
     expect(replace(obj, '_{?name: {user.firstname}!}_')).toEqual('_name: John!_');
@@ -272,9 +287,9 @@ describe('Deep (nested) replacement', () => {
   });
 
   test('nested with date', () => {
-    expect(replace(obj, '_{dates.somedate}_')).toEqual('_2025-04-27_');
-    expect(replace(obj, '_{dates.somedate}_', { date: false })).toEqual('_2025-04-27_');
-    expect(replace(obj, '_{stat.{dates.somedate}.total}_')).toEqual('_55_');
+    expect(replace(obj, '_{date.somedate}_')).toEqual('_2025-04-27_');
+    expect(replace(obj, '_{date.somedate}_', { date: false })).toEqual('_2025-04-27_');
+    expect(replace(obj, '_{stat.{date.somedate}.total}_')).toEqual('_55_');
   });
 
 });
@@ -283,14 +298,14 @@ describe('Date formatting and date operations', () => {
 
   test('date formatting', () => {
 
-    expect(replace(obj, '_{dates.today}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+    expect(replace(obj, '_{date.today}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
     expect(replace(obj, '_{user.birthday}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
 
     // default format
-    expect(replace(obj, '_{dates.today}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+    expect(replace(obj, '_{date.today}_')).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
 
     // custom format
-    const text = replace(obj, '_{dates.today}_', { dateformat: 'DD/MM/YYYY' });
+    const text = replace(obj, '_{date.today}_', { dateformat: 'DD/MM/YYYY' });
     expect(text).toMatch(/\d{2}\/\d{2}\/\d{4}/);
   });
 
@@ -304,11 +319,11 @@ describe('Date formatting and date operations', () => {
     expect(months).toBeGreaterThanOrEqual(0);
     expect(months).toBeLessThanOrEqual(2);
 
-    const hoursAfterToday = parseInt(replace(obj, '_{dates.today.after.hours}_').match(/\d+/)[0], 10);
+    const hoursAfterToday = parseInt(replace(obj, '_{date.today.after.hours}_').match(/\d+/)[0], 10);
     expect(hoursAfterToday).toBeGreaterThanOrEqual(0);
     expect(hoursAfterToday).toBeLessThanOrEqual(24);
 
-    const hoursBeforeTomorrow = parseInt(replace(obj, '_{dates.tomorrow.before.hours}_').match(/\d+/)[0], 10);
+    const hoursBeforeTomorrow = parseInt(replace(obj, '_{date.tomorrow.before.hours}_').match(/\d+/)[0], 10);
     expect(hoursBeforeTomorrow).toBeGreaterThanOrEqual(0);
     expect(hoursBeforeTomorrow).toBeLessThanOrEqual(24);
   });
