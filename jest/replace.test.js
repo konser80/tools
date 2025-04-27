@@ -39,7 +39,10 @@ const obj = {
   },
   msg: {
     text_en: 'Your OTP is: 4750, do not send it anyone',
-    hint: 'with $&gt; symbols'
+    hint: 'with $&gt; symbols',
+    long: `this is
+just a second
+and a third lines`
   },
   dates: {
     today: now.toISOString(),
@@ -49,6 +52,7 @@ const obj = {
   },
   posts: [{ id: 12 }],
   sizes: [12, 14, 16, 18, 20],
+  errors: { js: 1 },
   stat: {
     '2025-04-27': {
       total: 55
@@ -69,8 +73,16 @@ describe('Get simple data (basic replacements)', () => {
 
     expect(replace(obj, '_{products.John.price}_')).toEqual('_$2_');
     expect(replace(obj, '_{msg.hint}_')).toEqual('_with $&gt; symbols_');
-    
   });
+
+  test('multi-line', () => {
+    expect(replace(obj, 'long: {/this (.+)/msg.long}')).toEqual(`long: is
+just a second
+and a third lines`);
+    const res = replace(obj, `_{msg.long}_`, { crlf: '*' });
+    expect(res).toEqual('_this is*just a second*and a third lines_');
+  });
+
 
   test('cyrillic', () => {
     expect(replace(obj, '_{user.ИНН}_')).toEqual('_inn_');
@@ -117,7 +129,7 @@ describe('Get simple data (basic replacements)', () => {
     expect(replace(obj, false)).toEqual('false');
     expect(replace(obj, '123')).toEqual('123');
     expect(replace(obj, 555)).toEqual('555');
-    expect(replace(obj, {})).toEqual('');
+    expect(replace(obj, {})).toEqual('{}');
     expect(replace(obj, [])).toEqual('[]');
 
     expect(replace(0, 'a')).toEqual('a');
@@ -147,6 +159,11 @@ describe('Get simple data (basic replacements)', () => {
 
     expect(replace(obj, '_{user.hobbies}_')).toEqual(`_[ 'chess', 'music', 'reading' ]_`);
     expect(replace(obj, '_{user.hobbies}_', { array: ', ' })).toEqual('_chess, music, reading_');
+  });
+
+  test('objects', () => {
+    expect(replace(obj, '_{errors}_')).toEqual('_{ js: 1 }_');
+    expect(replace(obj, '_{/js: (.+) /errors}_')).toEqual('_1_');
   });
 
 });

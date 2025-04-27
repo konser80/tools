@@ -7,6 +7,7 @@ const validate = require('./validate');
 const { isDateTime } = validate;
 
 const REGEX_PLACEHOLDER = /\{(?<bool>!{1,2})?(?<sub>\/.*?\/)?(?<path>[a-zа-я_][a-zа-я0-9:_\-.[\]]*?)\}/i;
+const REGEX_DEEP_PLACEHOLDER = /\{(?<bool>!{1,2})?(?<sub>\/.*?\/)?(?<path>[a-zа-я{}_][a-zа-я0-9:{}_\-.[\]]*?)\}/i;
 
 const REGEX_RND = /^rnd\.(\d+)$/;
 const REGEX_ASNUMBER = /^(?<path>.+)\.asNumber$/;
@@ -131,6 +132,16 @@ function processPlaceholders(obj, text, opt, depth = 0) {
 
     const rawPlaceholder = match.placeholder.slice(1, -1); // убираем внешние скобки
 
+    // валидация пути
+    if (!isValidPath(`{${rawPlaceholder}}`)) {
+      if (DEBUG) console.debug(`Invalid placeholder path: "${rawPlaceholder}"`);
+      // Просто вставляем как текст без замены
+      result += match.placeholder;
+      cursor = match.end;
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
     // eslint-disable-next-line no-unused-vars
     const { text: resolvedPath, replaced: replacedInside } = processPlaceholders(obj, rawPlaceholder, opt, depth + 1);
 
@@ -158,6 +169,11 @@ function processPlaceholders(obj, text, opt, depth = 0) {
   if (DEBUG) console.log(`=> ${result}`.cyan);
   return { text: result, replaced: anyReplacement, failed: anyFailure };
 }
+// ==============================================
+function isValidPath(path) {
+  return REGEX_DEEP_PLACEHOLDER.test(path);
+}
+
 
 // ==============================================
 // ищет посимвольно плейсхолдер со вложенностями
@@ -227,7 +243,7 @@ function applySubRegex(sub, value) {
 
   if (sub && typeof value === 'string') {
     try {
-      const regex = new RegExp(sub.slice(1, -1), 'i');
+      const regex = new RegExp(sub.slice(1, -1), 'si');
       const found = value.match(regex);
       value = (found && found[1] !== undefined) ? found[1] : '';
     }
@@ -316,7 +332,7 @@ function getValueByPath(obj, path, opt) {
 
   // crlf
   if (opt.crlf !== undefined) {
-    value = value.replace(/\n/g, opt.crlf);
+    value = value.replace(/\r?\n/g, opt.crlf);
   }
 
   value = processEscape(value, opt);
