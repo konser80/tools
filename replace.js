@@ -421,17 +421,17 @@ function sfxAsKMB(obj, fullpath, value) {
   if (Math.abs(num) >= 1_000_000_000) {
     formatted = num / 1_000_000_000;
     const fixed = formatted < 10 ? formatted.toFixed(1) : Math.round(formatted);
-    res = `${fixed}B`;
+    res = `${+fixed}B`;
   }
   else if (Math.abs(num) >= 1_000_000) {
     formatted = num / 1_000_000;
     const fixed = formatted < 10 ? formatted.toFixed(1) : Math.round(formatted);
-    res = `${fixed}M`;
+    res = `${+fixed}M`;
   }
   else if (Math.abs(num) >= 1_000) {
     formatted = num / 1_000;
     const fixed = formatted < 10 ? formatted.toFixed(1) : Math.round(formatted);
-    res = `${fixed}K`;
+    res = `${+fixed}K`;
   }
   else {
     res = String(Math.round(num));

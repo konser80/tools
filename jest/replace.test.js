@@ -33,6 +33,7 @@ const obj = {
     John: {
       expiration: nextMonth.toISOString(),
       views: 12500,
+      min: 3016,
       title: 'MegaProduct',
       price: '$2',
     },
@@ -201,6 +202,7 @@ describe('Suffix operations (toLowerCase, asKMB, length, asNumber)', () => {
 
   test('asKMB', () => {
     expect(replace(obj, '_{products.John.views.asKMB}_')).toEqual('_13K_');
+    expect(replace(obj, '_{products.John.min.asKMB}_')).toEqual('_3K_');
   });
 
   test('length', () => {
