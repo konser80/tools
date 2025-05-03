@@ -26,8 +26,11 @@ const DEBUG = false;
 function processText(obj, text, params) {
   if (DEBUG) console.log(`processText: "${text}"`.yellow.bold);
 
-  if (text == null || text === '') return '';
+  if (text === '') return '';
+  if (text === null) return params?.null ?? '';
+  if (text === undefined) return params?.undefined ?? '';
   if (typeof text === 'boolean') return String(text);
+
   if (typeof text === 'number') text = String(text);
   if (typeof text === 'object') text = JSON.stringify(text);
   if (typeof text !== 'string') text = String(text);

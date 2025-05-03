@@ -131,7 +131,9 @@ and a third lines`);
   test('errors', () => {
     expect(replace(obj, '')).toEqual('');
     expect(replace(obj, null)).toEqual('');
+    expect(replace(obj, null, { null: 'n' })).toEqual('n');
     expect(replace(obj, undefined)).toEqual('');
+    expect(replace(obj, undefined, { undefined: 'u' })).toEqual('u');
     expect(replace(obj, true)).toEqual('true');
     expect(replace(obj, false)).toEqual('false');
     expect(replace(obj, '123')).toEqual('123');
