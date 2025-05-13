@@ -206,6 +206,9 @@ describe('Suffix operations (toLowerCase, asKMB, length, asNumber)', () => {
     expect(replace(obj, '_{user.name.toLowerCase}_')).toEqual('_john doe_');
     expect(replace(obj, '_{products.John.title.toLowerCase}_')).toEqual('_megaproduct_');
     expect(replace(obj, '_{products.John.title.toUpperCase}_')).toEqual('_MEGAPRODUCT_');
+    expect(replace(obj, '_{user.true.toUpperCase}_')).toEqual('_TRUE_');
+    expect(replace(obj, '_{user.false.toUpperCase}_')).toEqual('_FALSE_');
+    expect(replace(obj, '_{user.lang.toUpperCase}_')).toEqual('_EN_');
   });
 
   test('asKMB', () => {

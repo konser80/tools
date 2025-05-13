@@ -317,19 +317,19 @@ function getValueByPath(obj, path, opt) {
   if (Array.isArray(value) && opt.array && typeof value[0] !== 'object') {
     value = value.filter(Boolean).join(opt.array);
   }
-  else if (value === undefined) {
+  else if (value === undefined && opt.undefined !== undefined) {
     value = opt.undefined;
   }
-  else if (value === null) {
+  else if (value === null && opt.null !== undefined) {
     value = opt.null;
   }
-  else if (value === '') {
+  else if (value === '' && opt.empty !== undefined) {
     value = opt.empty;
   }
-  else if (value === true) {
+  else if (value === true && opt.true !== undefined) {
     value = opt.true;
   }
-  else if (value === false) {
+  else if (value === false && opt.false !== undefined) {
     value = opt.false;
   }
   if (typeof value === 'object') {
@@ -464,8 +464,11 @@ function sfxLowerCase(obj, fullpath, value, opt) {
 }
 // ==============================================
 function sfxUpperCase(obj, fullpath, value, opt) {
+  if (DEBUG) console.log(`sfxUpperCase() ${fullpath}`);
+  
   const match = fullpath.match(REGEX_UPPERCASE);
   if (!match?.groups?.path) return value;
+  if (DEBUG) console.log(`...matched regex: ${match.groups.path}`);
 
   const myValue = getValueByPath(obj, match.groups.path, { tz: opt.tz });
   if (myValue == null) return '';
