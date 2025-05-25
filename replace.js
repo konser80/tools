@@ -236,11 +236,12 @@ function replacer(obj, rawKey, opt, isTopLevel) {
 
   // get main value
   const _opt = isTopLevel ? opt : {};
+  opt.applyBoolean = match.groups.bool;
   let value = resolveValue(obj, match.groups.path.trim(), _opt);
 
   // apply prefixes
   value = applySubRegex(match.groups.sub, value);
-  value = applyBoolean(match.groups.bool, value, opt);
+  // value = applyBoolean(match.groups.bool, value, opt);
 
   return value;
 }
@@ -269,12 +270,12 @@ function applySubRegex(sub, value) {
 function applyBoolean(bool, value, opt) {
   
   if (bool === '!!') {
-    if (DEBUG) console.log(`applyBoolean() "${bool}"`);
+    if (DEBUG) console.log(`applyBoolean() "${bool}" to "${value}"`);
     value = (value) ? opt.true : opt.false;
     if (DEBUG) console.debug(`=> "${value}"`);
   }
   else if (bool === '!') {
-    if (DEBUG) console.log(`applyBoolean() "${bool}"`);
+    if (DEBUG) console.log(`applyBoolean() "${bool}" to "${value}"`);
     value = (!value) ? opt.true : opt.false;
     if (DEBUG) console.debug(`=> "${value}"`);
   }
@@ -313,6 +314,9 @@ function getValueByPath(obj, path, opt) {
 
   let value = _.get(obj, path);
   if (DEBUG) console.debug(`...got ${typeof value} "${tools.textify(value)}"`);
+
+  // apply Boolean right now
+  value = applyBoolean(opt.applyBoolean, value, opt);
 
   if (Array.isArray(value) && opt.array && typeof value[0] !== 'object') {
     value = value.filter(Boolean).join(opt.array);
@@ -455,7 +459,12 @@ function sfxLowerCase(obj, fullpath, value, opt) {
   const match = fullpath.match(REGEX_LOWERCASE);
   if (!match?.groups?.path) return value;
 
-  const myValue = getValueByPath(obj, match.groups.path, { tz: opt.tz });
+  const myValue = getValueByPath(obj, match.groups.path, {
+    tz: opt.tz,
+    true: opt.true,
+    false: opt.false,
+    applyBoolean: opt.applyBoolean
+  });
   if (myValue == null) return '';
   
   const res = String(myValue).toLowerCase();
@@ -470,7 +479,12 @@ function sfxUpperCase(obj, fullpath, value, opt) {
   if (!match?.groups?.path) return value;
   if (DEBUG) console.log(`...matched regex: ${match.groups.path}`);
 
-  const myValue = getValueByPath(obj, match.groups.path, { tz: opt.tz });
+  const myValue = getValueByPath(obj, match.groups.path, {
+    tz: opt.tz,
+    true: opt.true,
+    false: opt.false,
+    applyBoolean: opt.applyBoolean
+  });
   if (myValue == null) return '';
   
   const res = String(myValue).toUpperCase();

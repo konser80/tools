@@ -22,6 +22,10 @@ const obj = {
     null: null,
     undef: undefined,
     empty: '',
+    deeper: {
+      true: true,
+      false: false,
+    },
     lang: 'en',
     ИНН: 'inn', // тест на кириллицу
     birthday: lastWeek.toISOString(),
@@ -197,6 +201,18 @@ describe('Boolean replacement and logical negations (!, !!)', () => {
 
     expect(replace(obj, '_{!user.null}_')).toEqual('_true_');
     expect(replace(obj, '_{!!user.null}_')).toEqual('_false_');
+
+    // bool on false
+    expect(replace(obj, '_{!user.true}_')).toEqual('_false_');
+    expect(replace(obj, '_{!user.true.toUpperCase}_')).toEqual('_FALSE_');
+
+    expect(replace(obj, '_{!user.false}_')).toEqual('_true_');
+    expect(replace(obj, '_{!user.false.toUpperCase}_')).toEqual('_TRUE_');
+    expect(replace(obj, '_{!user.deeper.false.toUpperCase}_')).toEqual('_TRUE_');
+
+    expect(replace(obj, '_{!!user.false}_')).toEqual('_false_');
+    expect(replace(obj, '_{!!user.false.toUpperCase}_')).toEqual('_FALSE_');
+    expect(replace(obj, '_{!!user.deeper.false.toUpperCase}_')).toEqual('_FALSE_');
   });
 });
 
