@@ -13,7 +13,7 @@ function val(x, def) {
 
   // is number?
   // if (parseFloat(x).toString() === x) res = parseFloat(x);
-  if (typeof x === 'string' && x[0] !== '+' && !x.endsWith('.') && validator.isFloat(x)) res = parseFloat(x);
+  if (typeof x === 'string' && x[0] !== '+' && !x.endsWith('.') && validator.isFloat(x.trim())) res = parseFloat(x.trim());
 
   if ((res === undefined || res === null) && def !== undefined) res = def;
   return res;

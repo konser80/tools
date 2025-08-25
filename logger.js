@@ -144,8 +144,8 @@ function formatLog(message, level, _opt, datetime) {
     }
 
     // display short error version
-    if (message instanceof Error && log.data.split('\n').length > 6) {
-      log.data = log.data.split('\n').slice(0, 6).join('\n');
+    if (message instanceof Error && log.data.split('\n').length > 8) {
+      log.data = log.data.split('\n').slice(0, 8).join('\n');
     }
   }
 
