@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const replace = require('./replace');
+const replace = require('./pathreplace');
 
 const REGEX_ARRAY = /^\[.+\]$/;
 const REGEX_JSON = /^\s*(\[\s*)?\{\s*("[\s\S]*"\s*:[\s\S]+)}\s*\]?\s*$/; // could be multiline

@@ -170,11 +170,11 @@ function multiReplace(object, strPath, opt) {
       res.str = subres.str;
   
       // uuidReplace
-      subres = uuidReplace(res.str);
-      res.found += subres.found;
-      internalLoopCounter += subres.found;
-      res.replaced += subres.replaced;
-      res.str = subres.str;
+      // subres = uuidReplace(res.str);
+      // res.found += subres.found;
+      // internalLoopCounter += subres.found;
+      // res.replaced += subres.replaced;
+      // res.str = subres.str;
   
       // asNumberReplace
       subres = asNumberReplace(object, res.str, opt);
