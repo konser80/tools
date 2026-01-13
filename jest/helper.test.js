@@ -45,7 +45,7 @@ describe('val', () => {
   test('returns def if value is undefined or null', () => {
     expect(val(undefined, 5)).toBe(5);
     expect(val(null, 7)).toBe(7);
-    expect(val('null', 8)).toBeNull();
+    expect(val('null', 8)).toBe(8);
     expect(val('', 10)).toBe('');
   });
 

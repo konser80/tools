@@ -19,3 +19,4 @@ test*.*
 test/
 .eslint*
 docs/
+CLAUDE.md
