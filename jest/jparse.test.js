@@ -49,48 +49,60 @@ describe('Empty and null sources', () => {
 
 describe('Object sources (already objects)', () => {
 
-  // Note: when src is already an object, jparse calls replace() which stringifies it
-  test('simple object returns stringified', () => {
+  // When src is already an object, jparse returns the object with replaced values
+  test('simple object returns object', () => {
     const src = { foo: 'bar' };
-    expect(jparse(obj, src)).toEqual('{"foo":"bar"}');
+    expect(jparse(obj, src)).toEqual({ foo: 'bar' });
   });
 
-  test('object with placeholders returns stringified', () => {
+  test('object with placeholders returns object with replaced values', () => {
     const src = { name: '{user.name}', id: '{user.id}' };
-    expect(jparse(obj, src)).toEqual('{"name":"John Doe","id":"1234"}');
+    expect(jparse(obj, src)).toEqual({ name: 'John Doe', id: '1234' });
   });
 
-  test('object with defaultkey returns stringified', () => {
+  test('object with defaultkey adds default key', () => {
     const src = { foo: 'bar' };
-    expect(jparse(obj, src, 'status')).toEqual('{"foo":"bar","status":null}');
+    expect(jparse(obj, src, 'status')).toEqual({ foo: 'bar', status: null });
   });
 
-  test('array returns stringified', () => {
+  test('array returns array', () => {
     const src = [1, 2, 3];
-    expect(jparse(obj, src)).toEqual('[1,2,3]');
+    expect(jparse(obj, src)).toEqual([1, 2, 3]);
+  });
+
+  test('object key names with placeholders are replaced', () => {
+    const context = { lang: 'en', user: { id: 42 } };
+    const src = { 'text_{lang}': 'Hello', 'user_{user.id}': 'data' };
+    expect(jparse(context, src)).toEqual({ text_en: 'Hello', user_42: 'data' });
   });
 
 });
 
 describe('Path references ({path} syntax)', () => {
 
-  // Note: path references also return stringified objects
-  test('simple path to object returns stringified', () => {
+  // Path references return actual objects
+  test('simple path to object returns object', () => {
     const result = jparse(obj, '{user}');
-    expect(result).toContain('"name":"John Doe"');
-    expect(result).toContain('"id":1234');
+    expect(result).toEqual({
+      id: 1234,
+      name: 'John Doe',
+      email: 'john@example.com',
+      active: true,
+      role: 'admin'
+    });
   });
 
-  test('nested path to object returns stringified', () => {
+  test('nested path to object returns object', () => {
     const result = jparse(obj, '{config.options}');
-    expect(result).toContain('"debug":true');
-    expect(result).toContain('"verbose":false');
+    expect(result).toEqual({ debug: true, verbose: false });
   });
 
-  test('path to array returns stringified', () => {
+  test('path to array returns array', () => {
     const result = jparse(obj, '{items}');
-    expect(result).toContain('"title":"First"');
-    expect(result).toContain('"title":"Second"');
+    expect(result).toEqual([
+      { id: 1, title: 'First' },
+      { id: 2, title: 'Second' }
+    ]);
   });
 
   test('path to non-object falls through to defaultkey', () => {
@@ -112,6 +124,12 @@ describe('JSON string parsing', () => {
 
   test('JSON with placeholders', () => {
     expect(jparse(obj, '{"name": "{user.name}"}')).toEqual({ name: 'John Doe' });
+  });
+
+  test('JSON with placeholders in key names', () => {
+    const context = { lang: 'en', user: { id: 42 } };
+    const src = '{"text_{lang}": "Hello", "user_{user.id}": "data"}';
+    expect(jparse(context, src)).toEqual({ text_en: 'Hello', user_42: 'data' });
   });
 
   test('JSON with multiple placeholders', () => {

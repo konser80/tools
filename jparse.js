@@ -23,8 +23,10 @@ function parseObject(obj, src, defaultkey, replaceOptions) {
       && !Array.isArray(src)
       && !_.has(src, defaultkey)) src[defaultkey] = null;
     // replace object values
-    const dest = replace(obj, src, replaceOptions);
-    return dest;
+    replaceObjectKeysValues(obj, src);
+    return src;
+    // const dest = replace(obj, src, replaceOptions);
+    // return dest;
   }
 
   // pointer (path) to an object?
@@ -40,8 +42,9 @@ function parseObject(obj, src, defaultkey, replaceOptions) {
       if (defaultkey
         && !Array.isArray(srcobject)
         && !_.has(srcobject, defaultkey)) srcobject[defaultkey] = null;
-      const dest = replace(obj, srcobject, replaceOptions);
-      return dest;
+      // replace object values
+      replaceObjectKeysValues(obj, srcobject);
+      return srcobject;
     }
   }
 
@@ -125,5 +128,34 @@ function deepStringFn(obj, fn) {
   return obj;
 }
 
+// ==============================================
+function replaceObjectKeysValues(obj, somedata) {
+
+  // first - change key NAMES
+  Object.keys(somedata).forEach((key) => {
+    const newkey = replace(obj, key);
+    if (newkey === key) return;
+
+    somedata[newkey] = somedata[key];
+    delete somedata[key];
+  });
+
+  // then change values recursive
+  Object.keys(somedata).forEach((key) => {
+    const val = somedata[key];
+
+    if (typeof val === 'object'
+      && val !== null
+      && val !== undefined) {
+      somedata[key] = replaceObjectKeysValues(obj, val);
+    }
+    else if (typeof val === 'string') {
+      // only replace strings (may contain placeholders)
+      somedata[key] = replace(obj, val);
+    }
+    // keep numbers, booleans, null as-is
+  });
+  return somedata;
+}
 
 module.exports.parse = parseObject;
