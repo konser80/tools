@@ -14,6 +14,14 @@ test('tftotime', () => {
   expect(tools.tftotime('1m 10s')).toEqual(70000);
   expect(tools.tftotime('1h2m')).toEqual(3720000);
   expect(tools.tftotime('1h2m5s')).toEqual(3725000);
+  
+  // float
+  expect(tools.tftotime('1.750s')).toEqual(1750);
+  expect(tools.tftotime('1.5m')).toEqual(90000);
+
+  // numbers
+  expect(tools.tftotime(1000)).toEqual(1000);
+  expect(tools.tftotime(2750)).toEqual(2750);
 
   // other
   expect(tools.tftotime('1q')).toEqual(0);
@@ -21,6 +29,13 @@ test('tftotime', () => {
   expect(tools.tftotime('w')).toEqual(0);
 
   expect(tools.tftotime('@days.dk')).toEqual(0);
+  
+  // wrong types
+  expect(tools.tftotime(true)).toEqual(0);
+  expect(tools.tftotime(false)).toEqual(0);
+  expect(tools.tftotime(null)).toEqual(0);
+  expect(tools.tftotime({})).toEqual(0);
+  expect(tools.tftotime([1, 2, 3])).toEqual(0);
 });
 
 test('timetotf', () => {

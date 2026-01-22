@@ -10,13 +10,12 @@ const REGEX_TF = /(\d+(\.\d+)?[smhdwM])/g;
 // const REGEX_TF = /([\d.]{1,3}[smhdwM])/g;
 
 // ==============================================
+// convert strings to unix time
+// 15s, 10m, 24h, 7d, 1.750s & strings like: 2h3m10s
 function timeframeToUnixTime(s, fromDate = dayjs()) {
   if (!s) return 0;
-  if (typeof s !== 'string') return s;
-
-  // 15s, 10m, 24h, 7d, 1.750s
-  // convert strings to unix time
-  // & strings like: 2h3m10s
+  if (typeof s === 'number') return s;
+  if (typeof s !== 'string') return 0;
 
   let reg;
   let val = 0;
