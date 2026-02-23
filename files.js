@@ -1,8 +1,7 @@
 const fs = require('fs/promises');
 const dayjs = require('dayjs');
 const path = require('path');
-const { tftotime } = require('./timeframes');
-
+const { tftotime } = require('./index');
 
 // ==============================================
 async function removeOldFiles(folder, older) {

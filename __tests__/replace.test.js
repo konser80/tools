@@ -318,6 +318,51 @@ describe('Deep (nested) replacement', () => {
 
 });
 
+describe('randomtext — square bracket groups', () => {
+
+  test('picks one of two options', () => {
+    const result = tools.randomtext('hello [world|earth]');
+    expect(['hello world', 'hello earth']).toContain(result);
+  });
+
+  test('picks one of three options', () => {
+    const result = tools.randomtext('[good|great|best] day');
+    expect(['good day', 'great day', 'best day']).toContain(result);
+  });
+
+  test('multiple groups resolved', () => {
+    const result = tools.randomtext('[hi|hello] [world|earth]');
+    expect(result).toMatch(/^(hi|hello) (world|earth)$/);
+  });
+
+  test('nested groups resolved', () => {
+    const result = tools.randomtext('and [his|her|[their|our]] son');
+    expect(result).toMatch(/^and (his|her|their|our) son$/);
+  });
+
+  test('options trimmed (multiline-style)', () => {
+    const result = tools.randomtext('letter [a|\nb|\nc] button');
+    expect(['letter a button', 'letter b button', 'letter c button']).toContain(result);
+  });
+
+  test('no brackets — returns as-is', () => {
+    expect(tools.randomtext('no groups here')).toBe('no groups here');
+  });
+
+  test('non-string — returns as-is', () => {
+    expect(tools.randomtext(null)).toBeNull();
+    expect(tools.randomtext(42)).toBe(42);
+  });
+
+  test('result is stable across 20 runs', () => {
+    for (let i = 0; i < 20; i += 1) {
+      const result = tools.randomtext('some text [for|to] [my|his] son');
+      expect(result).toMatch(/^some text (for|to) (my|his) son$/);
+    }
+  });
+
+});
+
 describe('Date formatting and date operations', () => {
 
   test('date formatting', () => {
@@ -351,5 +396,40 @@ describe('Date formatting and date operations', () => {
     expect(hoursBeforeTomorrow).toBeGreaterThanOrEqual(0);
     expect(hoursBeforeTomorrow).toBeLessThanOrEqual(24);
   });
+});
+
+describe('Spell (human-readable time difference)', () => {
+
+  test('spell in russian (.ru)', () => {
+    // 1 day ago → "1 день"
+    expect(replace(obj, '{date.yesterday.after.spell.ru}')).toEqual('1 день');
+    // 7 days ago → "7 дней"
+    expect(replace(obj, '{user.birthday.after.spell.ru}')).toMatch(/^[78] дней$/);
+    // ~1 month from now — value depends on month length, check unit
+    expect(replace(obj, '{products.{user.firstname}.expiration.before.spell.ru}')).toMatch(/\d+ (дней|месяц|месяца|месяцев)/);
+  });
+
+  test('spell in english (.en)', () => {
+    expect(replace(obj, '{date.yesterday.after.spell.en}')).toEqual('1 day');
+    expect(replace(obj, '{user.birthday.after.spell.en}')).toMatch(/^[78] days$/);
+    expect(replace(obj, '{products.{user.firstname}.expiration.before.spell.en}')).toMatch(/\d+ (days|month|months)/);
+  });
+
+  test('spell without lang suffix (defaults to ru)', () => {
+    expect(replace(obj, '{date.yesterday.after.spell}')).toEqual('1 день');
+    expect(replace(obj, '{user.birthday.after.spell}')).toMatch(/^[78] дней$/);
+  });
+
+  test('spell on empty/invalid date returns empty string', () => {
+    expect(replace(obj, '{user.empty.after.spell.ru}')).toEqual('');
+    expect(replace(obj, '{user.empty.before.spell.en}')).toEqual('');
+  });
+
+  test('spell inside conditional block', () => {
+    expect(replace(obj, '{?ago: {date.yesterday.after.spell.en}}')).toEqual('ago: 1 day');
+    // empty date inside conditional → whole block collapses
+    expect(replace(obj, '{?ago: {user.empty.after.spell.en}}')).toEqual('');
+  });
+
 });
 

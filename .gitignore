@@ -1,9 +1,9 @@
 # Logs
-logs
 logs/
 *.log
 
 # Dependency directories
+package-lock.json
 node_modules/
 
 # System junk
@@ -14,9 +14,8 @@ config.js
 key*.json
 
 # Other
-package-lock.json
+_old
 test*.*
 test/
 .eslint*
 docs/
-CLAUDE.md

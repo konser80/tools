@@ -1,7 +1,7 @@
 {
   "name": "tools",
-  "version": "2.9.5",
-  "description": "small useful functions",
+  "version": "2.10.0",
+  "description": "useful functions",
   "main": "index.js",
   "scripts": {
     "test": "npx jest"
@@ -13,6 +13,10 @@
     "dayjs": "^1.10.4",
     "lodash": "^4.17.21",
     "log4js": "^6.4.1",
+    "logger": "github:konser80/logger",
+    "textify": "github:konser80/textify",
+    "tg-queue": "github:konser80/tg-queue",
+    "timeframes": "github:konser80/timeframes",
     "uuid": "^8.3.2",
     "validator": "^13.7.0"
   },

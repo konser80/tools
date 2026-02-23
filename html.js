@@ -10,7 +10,13 @@ function getCorrectedHTML(html) {
   const $ = cheerio.load(fullHtml);
 
   // get body content
-  const res = $('body').html();
+  const res = $('body')
+    .html()
+    .replace(/&nbsp;/g, '\u00A0') // fix &nbsp;
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&gt;/g, '>');
+
   return res;
 }
 

@@ -1,6 +1,4 @@
 const _ = require('lodash');
-
-// const replace = require('./pathreplace');
 const { replace } = require('./replace');
 
 const REGEX_ARRAY = /^\[.+\]$/;
