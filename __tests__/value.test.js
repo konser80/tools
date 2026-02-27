@@ -1,4 +1,4 @@
-const val = require('../value');
+const { val } = require('../index');
 
 describe('null / undefined', () => {
 

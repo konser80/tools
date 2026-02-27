@@ -1,4 +1,4 @@
-const combine = require('../combine');
+const { combine } = require('../index');
 
 describe('fixed values', () => {
 

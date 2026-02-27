@@ -1,4 +1,4 @@
-const { correctHTML } = require('../html');
+const { correctHTML } = require('../index');
 
 describe('correctHTML', () => {
 

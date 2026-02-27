@@ -1,17 +1,16 @@
-// external libraries
+module.exports.textify = require('./textify').textify;
+module.exports.typeof = require('./textify').typeof;
 
-module.exports.logger = require('logger');
+module.exports.tftotime = require('./timeframes').tftotime;
+module.exports.timetotf = require('./timeframes').timetotf;
+module.exports.timetotf2 = require('./timeframes').timetotf2;
 
-module.exports.textify = require('textify').textify;
-module.exports.typeof = require('textify').typeof;
+module.exports.queue = require('./queue').queue;
+module.exports.sleep = require('./queue').sleep;
+module.exports.timeout = require('./queue').sleep;
 
-module.exports.tftotime = require('timeframes').tftotime;
-module.exports.timetotf = require('timeframes').timetotf;
-module.exports.timetotf2 = require('timeframes').timetotf2;
-
-module.exports.queue = require('tg-queue').queue;
-module.exports.sleep = require('tg-queue').sleep;
-module.exports.timeout = require('tg-queue').sleep;
+// depends on textify, timetotf
+module.exports.logger = require('./logger');
 
 // internal modules
 
@@ -25,8 +24,8 @@ module.exports.notify = require('./notify').notify;
 
 module.exports.purgeOldFiles = require('./files').purgeOldFiles;
 
+// TODO: check usage
 const validate = require('./validate');
-
 module.exports.istime = validate.isTime;
 module.exports.isdate = validate.isDate;
 module.exports.isdatetime = validate.isDateTime;
