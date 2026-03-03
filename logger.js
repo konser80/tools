@@ -1,5 +1,5 @@
+/* eslint-disable prefer-template */
 const log4js = require('log4js');
-const dayjs = require('dayjs');
 
 const tools = require('./index');
 const { textify, timetotf } = tools;
@@ -81,7 +81,7 @@ function configureConsole() {
       // if (_opt && _opt.log === false) return;
 
       const level = levelMap[name];
-      const time = dayjs();
+      const time = new Date();
       const data = args[0];
       const res = formatLog(data, level, {}, time);
       origFunction(res.prefix + res.data, ...args.slice(1), res.ms);
@@ -94,13 +94,13 @@ function formatLog4JS(logEvent) {
   const level = (logEvent.level.levelStr || 'info').toLowerCase();
   const data = logEvent.data[0];
   const opt = logEvent.data[1] || {};
-  const time = dayjs(logEvent.startTime || undefined);
+  const time = logEvent.startTime ? new Date(logEvent.startTime) : new Date();
 
   // do NOT do anything - this doesn't work!!!
   // if (opt.log === false) return null;
 
   // result from cache
-  const timeVal = time.valueOf();
+  const timeVal = time.getTime();
   if (cache.level === level
   && cache.data === data
   && cache.time === timeVal) return cache.res;
@@ -151,8 +151,8 @@ function formatLog(message, level, _opt, datetime) {
   }
 
   // timestamp
-  const now = dayjs(datetime);
-  if (opt.time) log.time = `${`[${now.format('YYYY-MM-DD HH:mm:ss.SSS')}]`.grey} `;
+  const now = (datetime instanceof Date) ? datetime : new Date(datetime);
+  if (opt.time) log.time = `${`[${formatDate(now)}]`.grey} `;
 
   // difference
   if (opt.ms && (level === 'trace' || level === 'debug')) log.ms = getTimeDifference(now).green.dim;
@@ -195,10 +195,25 @@ function getTimeDifference(now) {
 
   if (previous === null) return '';
 
-  const diff = now.diff(previous);
+  const diff = now.getTime() - previous.getTime();
   const sdiff = ` +${timetotf(diff)}`;
 
   return sdiff;
+}
+
+// ==============================================
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+// ==============================================
+function pad3(n) { return n < 10 ? '00' + n : n < 100 ? '0' + n : '' + n; }
+// ==============================================
+function formatDate(d) {
+  return d.getFullYear()
+    + '-' + pad2(d.getMonth() + 1)
+    + '-' + pad2(d.getDate())
+    + ' ' + pad2(d.getHours())
+    + ':' + pad2(d.getMinutes())
+    + ':' + pad2(d.getSeconds())
+    + '.' + pad3(d.getMilliseconds());
 }
 
 configureConsole();

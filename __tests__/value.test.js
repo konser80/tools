@@ -41,6 +41,10 @@ describe('non-string passthrough', () => {
     expect(val(arr)).toBe(arr);
   });
 
+  test('NaN returned as-is', () => {
+    expect(val(NaN)).toBe(NaN);
+  });
+
 });
 
 describe('empty string', () => {
@@ -118,12 +122,25 @@ describe('float strings', () => {
     expect(val('.75')).toBe(0.75);
   });
 
+  test('zero float', () => {
+    expect(val('0.0')).toBe(0);
+  });
+
+  test('float with surrounding spaces', () => {
+    expect(val(' 123.45 ')).toBe(123.45);
+  });
+
 });
 
 describe('strings kept as-is', () => {
 
   test('phone number with +', () => {
     expect(val('+79001234567')).toBe('+79001234567');
+  });
+
+  test('short plus-prefixed numbers', () => {
+    expect(val('+5')).toBe('+5');
+    expect(val('+123.45')).toBe('+123.45');
   });
 
   test('hex literal', () => {
@@ -163,12 +180,28 @@ describe('strings kept as-is', () => {
     expect(val('-Infinity')).toBe('-Infinity');
   });
 
+  test('NaN string kept as string', () => {
+    expect(val('NaN')).toBe('NaN');
+  });
+
+  test('string starting with keyword', () => {
+    expect(val('false positive')).toBe('false positive');
+  });
+
 });
 
 describe('default value fallback', () => {
 
   test('unparseable string ignores default', () => {
     expect(val('42abc', 0)).toBe('42abc');
+  });
+
+  test('"null" string with default still returns null', () => {
+    expect(val('null', 8)).toBeNull();
+  });
+
+  test('empty string with default returns empty string', () => {
+    expect(val('', 10)).toBe('');
   });
 
   test('unparseable string returns trimmed string when no default', () => {
