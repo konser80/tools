@@ -13,8 +13,8 @@ const cache = {};
 function configureLogger(minlevel = 'silly', opts = {}) {
 
   const tracePattern = (opts.hourly === true)
-    // ? 'yyyy-MM-dd-hh0000'
-    ? 'yyyy-MM-dd-hhmm00'
+  // ? 'yyyy-MM-dd-hhmm00' // for debug
+    ? 'yyyy-MM-dd-hh0000'
     : 'yyyy-MM-dd';
 
   const prefix = (opts.prefix || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
