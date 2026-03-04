@@ -9,7 +9,6 @@ module.exports.queue = require('./queue').queue;
 module.exports.sleep = require('./queue').sleep;
 module.exports.timeout = require('./queue').sleep;
 
-// depends on textify, timetotf
 module.exports.logger = require('./logger');
 
 // internal modules

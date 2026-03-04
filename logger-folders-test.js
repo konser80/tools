@@ -1,6 +1,7 @@
 const configureLogger = require('./logger');
 
-const log = configureLogger('trace', { prefix: `acc79151112233_`, hourly: true });
+const log = configureLogger('trace', { hourly: true });
+// const log = configureLogger('trace', { prefix: `acc79151112233_`, hourly: true });
 // const log = configureLogger('trace', { dir: 'logs', prefix: 'test-' });
 
 let counter = 0;

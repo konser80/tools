@@ -37,6 +37,8 @@ setTimeout(() => {
   log.error(new Error('ошибка через logger'));
   log.trace('многострочный\nтекст\nдолжен начинаться\nс новой строки');
 
+  console.log('console.log родной (перехвачен)');
+
   setTimeout(() => {
     log.trace('после паузы 300ms');
     log.shutdown(() => {});

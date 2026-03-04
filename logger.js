@@ -1,12 +1,13 @@
 /* eslint-disable prefer-template */
 const log4js = require('log4js');
 
-const tools = require('./index');
-const { textify, timetotf } = tools;
+const { timetotf } = require('./timeframes');
+const { textify } = require('./textify');
 require('colors');
 
 const REGEX_STACK = /at (.+?) \(.+?([^/]+?):(\d+):(\d+)\)/;
 let previous = null;
+let consoleConfigured = false;
 const cache = {};
 
 // ==============================================
@@ -19,6 +20,8 @@ function configureLogger(minlevel = 'silly', opts = {}) {
 
   const prefix = (opts.prefix || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
   const logdir = (opts.dir || 'logs').toString().replace(/\/+$/, '');
+
+  if (!consoleConfigured) configureConsole();
 
   const layout = { type: 'pretty' };
   log4js.addLayout('pretty', () => formatLog4JS);
@@ -71,6 +74,8 @@ function configureLogger(minlevel = 'silly', opts = {}) {
 }
 // ==============================================
 function configureConsole() {
+  if (consoleConfigured) return;
+  consoleConfigured = true;
 
   const levelMap = { debug: 'debug', log: 'trace', info: 'debug', warn: 'warn', error: 'error' };
   const consoleMethods = ['debug', 'log', 'info', 'warn', 'error'];
@@ -221,8 +226,6 @@ function formatDate(d) {
     + ':' + pad2(d.getSeconds())
     + '.' + pad3(d.getMilliseconds());
 }
-
-configureConsole();
 
 module.exports = configureLogger;
 module.exports._formatLog = formatLog;
