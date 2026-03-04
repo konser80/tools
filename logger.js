@@ -12,9 +12,12 @@ const cache = {};
 // ==============================================
 function configureLogger(minlevel = 'silly', opts = {}) {
 
-  let tracePattern = 'yyyy-MM-dd';
-  if (opts.hourly === true) tracePattern = 'yyyy-MM-dd-hh0000';
-  const prefix = (opts.prefix || '').toString();
+  const tracePattern = (opts.hourly === true)
+    // ? 'yyyy-MM-dd-hh0000'
+    ? 'yyyy-MM-dd-hhmm00'
+    : 'yyyy-MM-dd';
+
+  const prefix = (opts.prefix || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
   const logdir = (opts.dir || 'logs').toString().replace(/\/+$/, '');
 
   const layout = { type: 'pretty' };
@@ -32,8 +35,8 @@ function configureLogger(minlevel = 'silly', opts = {}) {
         filename: `${logdir}/${prefix}trace.log`,
         pattern: `old/yyyy-MM/${tracePattern}`,
         keepFileExt: true,
-        mode: 0o644
-        // numBackups: 5
+        mode: 0o644,
+        // numBackups: 999
       },
 
       errorfile: {
@@ -42,7 +45,8 @@ function configureLogger(minlevel = 'silly', opts = {}) {
         filename: `${logdir}/${prefix}error.log`,
         pattern: 'old/yyyy-MM',
         keepFileExt: true,
-        mode: 0o644
+        mode: 0o644,
+        // numBackups: 999
       },
 
       show: { type: 'logLevelFilter', appender: 'console', level: minlevel },

@@ -2,7 +2,7 @@
 
 Подключение:
 const logger = require('./logger');
-const log = logger('trace', { dir: 'logs' });
+const log = logger('trace', { dir: 'logs', hourly: false });
 
 Используем:
 log.trace(somedata, opts);
