@@ -32,6 +32,7 @@ function configureLogger(minlevel = 'silly', opts = {}) {
         filename: `${logdir}/${prefix}trace.log`,
         pattern: `old/yyyy-MM/${tracePattern}`,
         keepFileExt: true,
+        mode: 0o644
         // numBackups: 5
       },
 
@@ -40,7 +41,8 @@ function configureLogger(minlevel = 'silly', opts = {}) {
         type: 'dateFile',
         filename: `${logdir}/${prefix}error.log`,
         pattern: 'old/yyyy-MM',
-        keepFileExt: true
+        keepFileExt: true,
+        mode: 0o644
       },
 
       show: { type: 'logLevelFilter', appender: 'console', level: minlevel },
