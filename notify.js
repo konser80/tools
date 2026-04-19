@@ -1,7 +1,7 @@
 const axios = require('axios');
 const tools = require('./index');
 
-const NOTIFY_URL = 'https://bs1.konser.ru/notifybot/alert';
+const NOTIFY_URL = 'https://alerts.t21x.com/alert';
 const TIMER_WAIT = 2000;
 const DEBUG = false;
 
