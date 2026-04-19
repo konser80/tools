@@ -56,7 +56,9 @@ and a third lines`
     somedate: '2025-04-27',
     year: '2025',
     month: '04',
-    day: '27'
+    day: '27',
+    lastWeekTsString: String(lastWeek.valueOf()),
+    lastWeekTsNumber: lastWeek.valueOf(),
   },
   posts: [{ id: 12 }],
   sizes: [12, 14, 16, 18, 20],
@@ -395,6 +397,20 @@ describe('Date formatting and date operations', () => {
     const hoursBeforeTomorrow = parseInt(replace(obj, '_{date.tomorrow.before.hours}_').match(/\d+/)[0], 10);
     expect(hoursBeforeTomorrow).toBeGreaterThanOrEqual(0);
     expect(hoursBeforeTomorrow).toBeLessThanOrEqual(24);
+  });
+
+  test('date after with unix timestamp as string', () => {
+    // lastWeekTsString = String(lastWeek.valueOf()) — число миллисекунд в виде строки
+    const days = parseInt(replace(obj, '_{date.lastWeekTsString.after.days}_').match(/\d+/)[0], 10);
+    expect(days).toBeGreaterThanOrEqual(7);
+    expect(days).toBeLessThanOrEqual(8);
+  });
+
+  test('date after with unix timestamp as number', () => {
+    // lastWeekTsNumber = lastWeek.valueOf() — число (не строка)
+    const days = parseInt(replace(obj, '_{date.lastWeekTsNumber.after.days}_').match(/\d+/)[0], 10);
+    expect(days).toBeGreaterThanOrEqual(7);
+    expect(days).toBeLessThanOrEqual(8);
   });
 });
 
