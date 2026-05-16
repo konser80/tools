@@ -1,14 +1,14 @@
 {
   "name": "tools",
-  "version": "2.11.0",
+  "version": "2.11.1",
   "description": "useful functions",
   "main": "index.js",
   "scripts": {
     "test": "npx jest"
   },
   "dependencies": {
+    "@colors/colors": "^1.6.0",
     "axios": "^1.4.0",
-    "colors": "^1.4.0",
     "dayjs": "^1.10.4",
     "lodash": "^4.17.21",
     "log4js": "^6.4.1",

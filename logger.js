@@ -3,7 +3,7 @@ const log4js = require('log4js');
 
 const { timetotf } = require('./timeframes');
 const { textify } = require('./textify');
-require('colors');
+require('@colors/colors');
 
 const REGEX_STACK = /at (.+?) \(.+?([^/]+?):(\d+):(\d+)\)/;
 let previous = null;
