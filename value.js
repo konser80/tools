@@ -43,7 +43,11 @@ function val(x, def) {
 
   // now it's time to parse numbers/float
   const num = Number(trimmed);
-  if (Number.isFinite(num)) return num;
+  if (Number.isFinite(num)) {
+    // unsafe integer = искажённый ID (включая дроби, у которых потерялась дробная часть)
+    if (Number.isInteger(num) && !Number.isSafeInteger(num)) return trimmed;
+    return num;
+  }
   if (num === Infinity || num === -Infinity) return trimmed;
   
   return trimmed;

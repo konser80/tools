@@ -184,6 +184,16 @@ describe('strings kept as-is', () => {
     expect(val('NaN')).toBe('NaN');
   });
 
+  test('integer above MAX_SAFE_INTEGER kept as string (no precision loss)', () => {
+    // Number('5264758730909589005') === 5264758730909589504 — float64 теряет точность
+    expect(val('5264758730909589005')).toBe('5264758730909589005');
+  });
+
+  test('decimal above MAX_SAFE_INTEGER kept as string (fraction lost entirely)', () => {
+    // Number('5264758730909589005.5') === 5264758730909589504 — дробь теряется, результат целый
+    expect(val('5264758730909589005.5')).toBe('5264758730909589005.5');
+  });
+
   test('string starting with keyword', () => {
     expect(val('false positive')).toBe('false positive');
   });
