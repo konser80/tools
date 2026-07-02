@@ -41,6 +41,11 @@ describe('correctHTML (sanitize-html impl)', () => {
       .toBe('<a href="https://x.com">link</a>');
   });
 
+  test('preserves tg:// mention href', () => {
+    expect(correctHTML('mention <a href="tg://user?id=112233">userfullname</a>'))
+      .toBe('mention <a href="tg://user?id=112233">userfullname</a>');
+  });
+
   test('strips javascript: scheme from anchor', () => {
     expect(correctHTML('<a href="javascript:alert(1)">x</a>')).toBe('<a>x</a>');
   });

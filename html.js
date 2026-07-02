@@ -42,6 +42,8 @@ function getCorrectedHTML(html, opts = {}) {
   const cleaned = sanitizeHtml(preEscaped, {
     allowedTags,
     allowedAttributes,
+    // Telegram mentions use tg://user?id=... — keep it alongside the safe web schemes.
+    allowedSchemes: opts.allowedSchemes || ['http', 'https', 'mailto', 'tel', 'tg'],
     disallowedTagsMode: opts.disallowedTagsMode || 'escape',
   });
 
