@@ -325,10 +325,6 @@ describe('Edge cases', () => {
     expect(jparse(obj, '{}')).toEqual({ _notparsed: '{}' });
   });
 
-  test('empty array string falls through', () => {
-    expect(jparse(obj, '[]')).toEqual({ _notparsed: '[]' });
-  });
-
   test('deeply nested JSON', () => {
     const src = '{"a": {"b": {"c": "{user.name}"}}}';
     expect(jparse(obj, src)).toEqual({
@@ -358,6 +354,20 @@ describe('Edge cases', () => {
     const src = '{"message": "{text}"}';
     const result = jparse(context, src);
     expect(result.message).toEqual('Hello "World"');
+  });
+
+});
+
+describe('empty array string "[]"', () => {
+
+  // '[]' matches REGEX_ARRAY and parses to an empty array;
+  // defaultkey is ignored because the result is an array
+  test('with defaultkey "_key"', () => {
+    expect(jparse(obj, '[]', '_key')).toEqual([]);
+  });
+
+  test('without defaultkey', () => {
+    expect(jparse(obj, '[]')).toEqual([]);
   });
 
 });

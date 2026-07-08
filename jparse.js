@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { replace } = require('./replace');
 
-const REGEX_ARRAY = /^\[.+\]$/;
+const REGEX_ARRAY = /^\[.*\]$/;
 const REGEX_JSON = /^\s*(\[\s*)?\{\s*("[\s\S]*"\s*:[\s\S]+)}\s*\]?\s*$/; // could be multiline
 const REGEX_PATH = /^\{([^": ]+)}$/; // can't contain : and " at the start
 
