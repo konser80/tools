@@ -6,6 +6,8 @@ const { textify } = require('./textify');
 require('@colors/colors');
 
 const REGEX_STACK = /at (.+?) \(.+?([^/]+?):(\d+):(\d+)\)/;
+const SHUTDOWN_TIMEOUT = 3000;
+let exiting = false;
 let previous = null;
 let consoleConfigured = false;
 const cache = {};
@@ -64,13 +66,61 @@ function configureLogger(minlevel = 'silly', opts = {}) {
   });
 
   const logger = log4js.getLogger();
+  // все пять методов должны идти в log4js: иначе метод остаётся обёрткой
+  // из configureConsole и пишет в нативный stdout мимо файлов
   console.log = (...args) => logger.trace(...args);
   console.info = (...args) => logger.debug(...args);
+  console.debug = (...args) => logger.debug(...args);
   console.warn = (...args) => logger.warn(...args);
   console.error = (...args) => logger.error(...args);
 
-  logger.shutdown = log4js.shutdown;
+  logger.shutdown = shutdown;
+  logger.exit = exit;
   return logger;
+}
+// ==============================================
+// log4js пишет в файлы асинхронно, поэтому process.exit() теряет последние строки.
+// shutdown() дожидается флаша. Колбэк вызывается ровно один раз — даже если
+// log4js не ответил (например, диск полон), иначе процесс повиснет навсегда.
+// ==============================================
+function shutdown(cb, timeout = SHUTDOWN_TIMEOUT) {
+  if (typeof cb === 'function') return flush(cb, timeout);
+  return new Promise((resolve) => flush(resolve, timeout));
+}
+// ==============================================
+function flush(done, timeout) {
+  let finished = false;
+  let timer = null;
+
+  const finish = (err) => {
+    if (finished) return;
+    finished = true;
+    clearTimeout(timer);
+    done(err);
+  };
+
+  timer = setTimeout(() => finish(new Error(`log shutdown timeout (${timeout}ms)`)), timeout);
+  if (timer.unref) timer.unref();
+
+  try {
+    log4js.shutdown(finish);
+  }
+  catch (err) {
+    finish(err);
+  }
+
+  return undefined;
+}
+// ==============================================
+// после shutdown() log4js молча выбрасывает всё, что залогировано позже
+// (включая console.*, они перенаправлены в logger) — поэтому только выход.
+// повторный вызов игнорируется: он завершился бы синхронно (аппендеров уже нет)
+// и убил бы процесс до того, как первый флаш дописал файл
+// ==============================================
+function exit(code = 0) {
+  if (exiting) return;
+  exiting = true;
+  shutdown(() => process.exit(code));
 }
 // ==============================================
 function configureConsole() {

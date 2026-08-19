@@ -80,6 +80,7 @@ module.exports = [
         describe: 'readonly',
         beforeEach: 'readonly',
         afterEach: 'readonly',
+        jest: 'readonly',
         ...globals.node
       }
     },

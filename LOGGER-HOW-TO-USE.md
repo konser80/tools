@@ -1,15 +1,46 @@
+logger - модуль логирования (обвязка на log4js)
+
 # Как использовать в проектах
 
-Подключение:
+Setup:
+npm i konser80/tools
+
+Usage:
 const logger = require('./logger');
 const log = logger('trace', { dir: 'logs', hourly: false });
 
-Используем:
 log.trace(somedata, opts);
 log.debug(somedata);
 
-Важно:
+Important:
 Функция принимает лишь один аргумент для вывода, поэтому log.trace(arg1, arg2, arg3) не сработает.
+
+# console.*
+
+После configureLogger() все console-методы (log, info, debug, warn, error) идут через логгер и попадают в файлы: console.log → trace, console.info и console.debug → debug, console.warn → warn, console.error → error. Отдельно настраивать ничего не нужно.
+
+# Завершение процесса
+
+Важно: log4js пишет в файлы асинхронно. Обычный process.exit() убивает процесс до того, как строка доедет до диска — в консоли она видна, а в error.log её нет. Ровно та строка, ради которой лог и заводят (fatal перед смертью), теряется чаще всего.
+
+Поэтому вместо process.exit(code) всегда используем:
+
+log.exit(code);
+
+Он дожидается флаша и только потом завершает процесс. Вызов идемпотентный: если exit() дёрнули дважды, побеждает первый — второй не оборвёт незаконченную запись. Если log4js не ответил за 3 секунды (например, диск полон), процесс всё равно завершится, а не повиснет.
+
+После log.exit() логировать бессмысленно: log4js отключает запись, и строки пропадут и из файла, и из консоли (console.* перенаправлены в logger). log.exit() должен быть последним действием.
+
+Обработчики сигналов и падений ставит сам проект — библиотека в них не вмешивается:
+
+process.on('SIGINT', () => log.exit(0));
+process.on('SIGTERM', () => log.exit(0));   // pm2 restart шлёт SIGINT
+process.on('uncaughtException', (err) => { log.fatal(err); log.exit(1); });
+
+Если нужен не выход, а просто дождаться записи (например, перед долгой паузой), есть log.shutdown():
+
+await log.shutdown();          // промис
+log.shutdown(() => { ... });   // или колбэк
 
 # Когда какие методы применять
 
@@ -33,3 +64,23 @@ log.info() используем для важных событий. Наприм
 ## warn, error
 
 log.warn(), log.error() - стандартное использование.
+
+Важно: в log.warn() и log.error() НЕ нужен префикс '[-]' — эти уровни сами выводят крупный контрастный бейдж (жёлтый ' W ' / красный ' E '). Префиксы [ ], [·], [+], [-] используем только в trace/debug/info.
+
+# Best Practice
+
+logger сам выводит datetime с милисекундами.
+
+## task number & task status
+
+Если в проекте это уместно - хорошей практикой я считаю каждой задаче назначать taskId (начиная с 000, далее делать taskId % 1000).
+
+Также использовать префиксы информационные, для начала задачи, для успешного выполнения и неуспешного: [ ], [·], [+], [-]
+
+Примеры вывода:
+
+log.trace(`[ ][${task}] command received: getRate`);
+log.trace(`[·][${task}] fetching data from url ${url}`);
+log.trace(`[-][${task}] proxy ${proxy.url} failed, skipping`);
+log.trace(`[+][${task}] fetched 16kb in 0.3 sec`);
+log.debug(`[+][${task}] getRate: RUB=78.3, EUR=1.17`);

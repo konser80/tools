@@ -31,9 +31,12 @@ npx eslint .
 
 **logger.js** - Console enhancement and log4js configuration. Depends on textify and timeframes.
 - `configureConsole()` — patches `console.*` (debug/log/info/warn/error) with colored, timestamped output. Level mapping: `log→trace`, `info→debug`, `debug→debug`, `warn→warn`, `error→error`.
-- `configureLogger(minlevel, opts)` — sets up log4js with file rotation. Writes trace-level to `<dir>/<prefix>trace.log`, warn+ to `<dir>/<prefix>error.log`. Options: `prefix` (filename prefix), `dir` (log directory, default `'logs'`), `hourly` (hourly rotation). Returns log4js logger instance with `logger.shutdown` attached.
+- `configureLogger(minlevel, opts)` — sets up log4js with file rotation. Writes trace-level to `<dir>/<prefix>trace.log`, warn+ to `<dir>/<prefix>error.log`. Options: `prefix` (filename prefix), `dir` (log directory, default `'logs'`), `hourly` (hourly rotation). Redirects all five `console.*` methods into log4js (`log→trace`, `info→debug`, `debug→debug`, `warn`, `error`) so console output lands in the files too — a method left unredirected keeps the `configureConsole` wrapper and writes to native stdout only. Returns log4js logger instance with `logger.shutdown` and `logger.exit` attached.
 - Internal: `formatLog(message, level, opt, datetime)` — core formatter returning `{ text, prefix, data, ms }`. Level-colored badges, ISO timestamp, time-diff suffix for trace/debug, Error stack parsing.
 - Internal: `formatLog4JS(logEvent)` — adapter from log4js event to formatLog with single-entry result cache.
+- `logger.exit(code)` — flushes pending log writes, then `process.exit(code)`. Required instead of bare `process.exit()`: log4js writes files asynchronously, so exiting directly drops the last lines from `trace.log`/`error.log` (they still reach the console, which is synchronous). Idempotent — the first call wins, so a second `exit()` cannot cut short the first flush.
+- `logger.shutdown(cb, timeout = 3000)` — guarded wrapper over `log4js.shutdown`. Returns a promise when called without a callback. The callback fires exactly once and is guaranteed to fire: on timeout it is called with an `Error` so a stuck appender cannot hang the process. Nothing logged after shutdown reaches file or console.
+- Signal / crash handlers are the consuming project's job — the library installs none. See `LOGGER-HOW-TO-USE.md`.
 - Internals exported with `_` prefix for testing: `_formatLog`, `_resetColors`, `_getTimeDifference`.
 - Known issue: log4js does not recover after disk full — requires process restart.
 - See `LOGGER-HOW-TO-USE.md` for usage guidelines in other projects.
@@ -46,7 +49,7 @@ npx eslint .
 - Dependencies: lodash, dayjs, util.
 
 **timeframes.js** - Bidirectional conversion between human-readable timeframe strings and milliseconds. Dependency: dayjs.
-- `tftotime(s, fromDate?)` — parses `"15s"`, `"10m"`, `"24h"`, `"7d"`, `"1y"`, combined `"2h3m10s"`. Unknown units silently ignored. Defaults to hour if no suffix.
+- `tftotime(s, fromDate?)` — parses `"15s"`, `"10m"`, `"24h"`, `"7d"`, `"1y"`, combined `"2h3m10s"`. Unknown/missing-unit substrings are silently ignored — a bare number-only string like `"2"` matches no unit and returns `0`. A JS `number` input is returned as-is (treated as already-milliseconds, not seconds).
 - `timetotf(diff)` — ms to compact single-unit string (`"Xms"`, `"Xs"`, `"Xm"`, `"Xh"`, `"Xd"`). Threshold for hours→days is `4*DAY`.
 - `timetotf2(diff)` — ms to verbose multi-unit string (`"2y5d3h15m20s"`).
 - Units: `s`, `m`, `h`, `d` use constant multiplication; `w`, `M` (uppercase), `y` use dayjs calendar arithmetic.

@@ -358,6 +358,74 @@ describe('Edge cases', () => {
 
 });
 
+describe('Arrays by path ({path} to an array)', () => {
+
+  const src = {
+    name: 'Bob',
+    proxies: [
+      { host: '1.1.1.1' },
+      { host: '2.2.2.2', user: '{name}' }
+    ],
+    cfg: { list: [1, 2, 3] },
+    empty: []
+  };
+
+  // The ONLY way to get a real array back is when the whole src is the pure
+  // path {path} — it matches REGEX_PATH and _.get returns the array as-is.
+  test('pure path returns the actual array', () => {
+    expect(jparse(src, '{proxies}')).toEqual([
+      { host: '1.1.1.1' },
+      { host: '2.2.2.2', user: 'Bob' }
+    ]);
+  });
+
+  test('placeholders inside array items are replaced', () => {
+    const result = jparse(src, '{proxies}');
+    expect(result[1].user).toEqual('Bob');
+  });
+
+  test('nested path to array', () => {
+    expect(jparse(src, '{cfg.list}')).toEqual([1, 2, 3]);
+  });
+
+  test('path to empty array returns empty array', () => {
+    expect(jparse(src, '{empty}')).toEqual([]);
+  });
+
+  // The returned array is the SAME reference as obj[path], and its items are
+  // mutated in place by placeholder replacement — not a deep copy.
+  test('returned array is the same reference (mutated in place)', () => {
+    const obj2 = { proxies: [{ host: 'x' }] };
+    const result = jparse(obj2, '{proxies}');
+    expect(result).toBe(obj2.proxies);
+  });
+
+  // Embedding an array-by-path INSIDE a bigger structure does NOT work:
+  // replace() renders the array via util.inspect (single quotes, not JSON),
+  // so it never parses as JSON and falls through to _notparsed.
+
+  // e.g. '{ on: true, proxies: {proxies} }' — not valid JSON, no leading '"'
+  test('array path embedded in a non-JSON structure falls through to _notparsed', () => {
+    const result = jparse(src, '{ on: true, proxies: {proxies} }');
+    expect(Object.keys(result)).toEqual(['_notparsed']);
+  });
+
+  // even a JSON-looking wrapper breaks: {proxies} expands to an inspect string
+  test('array path embedded via unquoted placeholder breaks JSON parse', () => {
+    const result = jparse(src, '{"on": true, "proxies": {proxies}}');
+    expect(Object.keys(result)).toEqual(['_notparsed']);
+  });
+
+  // a quoted placeholder yields a STRING (inspect dump), not a real array
+  test('array path in a quoted placeholder becomes a string, not an array', () => {
+    const result = jparse(src, '{"on": true, "proxies": "{proxies}"}');
+    expect(result.on).toBe(true);
+    expect(typeof result.proxies).toBe('string');
+    expect(Array.isArray(result.proxies)).toBe(false);
+  });
+
+});
+
 describe('empty array string "[]"', () => {
 
   // '[]' matches REGEX_ARRAY and parses to an empty array;
