@@ -3,10 +3,13 @@ const log4js = require('log4js');
 
 const { timetotf } = require('./timeframes');
 const { textify } = require('./textify');
+const { purgeOldFiles } = require('./files');
 require('@colors/colors');
 
 const REGEX_STACK = /at (.+?) \(.+?([^/]+?):(\d+):(\d+)\)/;
 const SHUTDOWN_TIMEOUT = 3000;
+const PURGE_INTERVAL = 86400000;
+let purgeTimer = null;
 let exiting = false;
 let previous = null;
 let consoleConfigured = false;
@@ -74,9 +77,39 @@ function configureLogger(minlevel = 'silly', opts = {}) {
   console.warn = (...args) => logger.warn(...args);
   console.error = (...args) => logger.error(...args);
 
+  if (opts.keep) startPurge(logdir, opts.keep);
+
   logger.shutdown = shutdown;
   logger.exit = exit;
+  logger.stopPurge = stopPurge;
   return logger;
+}
+// ==============================================
+// чистка ротированных логов раз в сутки. трогаем только <dir>/old:
+// в корне лежат активные trace.log/error.log, их удалять нельзя.
+// unref() — иначе таймер не даст процессу завершиться самому
+// ==============================================
+function startPurge(logdir, keep) {
+  stopPurge();
+
+  purgeTimer = setInterval(() => {
+    // ошибка внутри таймера никем не ловится и валит процесс целиком,
+    // поэтому чистка логов не имеет права выбросить наружу
+    purgeOldFiles(`${logdir}/old`, keep)
+      .then((list) => { if (list.length) console.log(`[+] logs purged: ${list.length} items`); })
+      .catch((err) => console.warn(`[-] log purge failed: ${err.message}`));
+  }, PURGE_INTERVAL);
+
+  if (purgeTimer.unref) purgeTimer.unref();
+  return purgeTimer;
+}
+// ==============================================
+function stopPurge() {
+  if (!purgeTimer) return false;
+
+  clearInterval(purgeTimer);
+  purgeTimer = null;
+  return true;
 }
 // ==============================================
 // log4js пишет в файлы асинхронно, поэтому process.exit() теряет последние строки.
@@ -281,3 +314,5 @@ module.exports = configureLogger;
 module.exports._formatLog = formatLog;
 module.exports._resetColors = resetColors;
 module.exports._getTimeDifference = getTimeDifference;
+module.exports._startPurge = startPurge;
+module.exports._stopPurge = stopPurge;
