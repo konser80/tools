@@ -1,7 +1,8 @@
 const fs = require('fs/promises');
 const dayjs = require('dayjs');
 const path = require('path');
-const { tftotime } = require('./index');
+const { tftotime } = require('./timeframes');
+const { forEachAsyncFn } = require('./arrays');
 
 // ==============================================
 async function removeOldFiles(folder, older) {
@@ -28,7 +29,7 @@ async function removeRecursive(earlier, folder, sub = '') {
   const newRoot = path.join(folder, sub);
   try {
     const list = await fs.readdir(newRoot);
-    await list.forEachAsync(async (fname) => {
+    await forEachAsyncFn.call(list, async (fname) => {
       const stat = await fs.stat(path.join(newRoot, fname));
 
       // this is a folder
