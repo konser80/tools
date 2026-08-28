@@ -31,16 +31,16 @@ npx eslint .
 
 **logger.js** - Console enhancement and log4js configuration. Depends on textify, timeframes and files.
 - `configureConsole()` — patches `console.*` (debug/log/info/warn/error) with colored, timestamped output. Level mapping: `log→trace`, `info→debug`, `debug→debug`, `warn→warn`, `error→error`.
-- `configureLogger(minlevel, opts)` — sets up log4js with file rotation. Writes trace-level to `<dir>/<prefix>trace.log`, warn+ to `<dir>/<prefix>error.log`. Options: `prefix` (filename prefix), `dir` (log directory, default `'logs'`), `hourly` (hourly rotation), `keep` (timeframe like `'30d'` — enables daily purge of `<dir>/old`; off unless set). Redirects all five `console.*` methods into log4js (`log→trace`, `info→debug`, `debug→debug`, `warn`, `error`) so console output lands in the files too — a method left unredirected keeps the `configureConsole` wrapper and writes to native stdout only. Returns log4js logger instance with `logger.shutdown`, `logger.exit` and `logger.stopPurge` attached.
+- `configureLogger(minlevel, opts)` — sets up log4js with file rotation. Writes trace-level to `<dir>/<prefix>trace.log`, warn+ to `<dir>/<prefix>error.log`. Options: `prefix` (filename prefix), `dir` (log directory, default `'logs'`), `hourly` (hourly rotation), `keep` (timeframe like `'30d'` — enables daily purge of the rotation folders; off unless set). Redirects all five `console.*` methods into log4js (`log→trace`, `info→debug`, `debug→debug`, `warn`, `error`) so console output lands in the files too — a method left unredirected keeps the `configureConsole` wrapper and writes to native stdout only. Returns log4js logger instance with `logger.shutdown`, `logger.exit` and `logger.stopPurge` attached.
 - Internal: `formatLog(message, level, opt, datetime)` — core formatter returning `{ text, prefix, data, ms }`. Level-colored badges, ISO timestamp, time-diff suffix for trace/debug, Error stack parsing.
 - Internal: `formatLog4JS(logEvent)` — adapter from log4js event to formatLog with single-entry result cache.
 - `logger.exit(code)` — flushes pending log writes, then `process.exit(code)`. Required instead of bare `process.exit()`: log4js writes files asynchronously, so exiting directly drops the last lines from `trace.log`/`error.log` (they still reach the console, which is synchronous). Idempotent — the first call wins, so a second `exit()` cannot cut short the first flush.
 - `logger.shutdown(cb, timeout = 3000)` — guarded wrapper over `log4js.shutdown`. Returns a promise when called without a callback. The callback fires exactly once and is guaranteed to fire: on timeout it is called with an `Error` so a stuck appender cannot hang the process. Nothing logged after shutdown reaches file or console.
-- `startPurge(logdir, keep)` / `stopPurge()` — daily (`PURGE_INTERVAL`, 24h) cleanup of rotated logs via `purgeOldFiles`. Purges `<logdir>/old` only: active `trace.log`/`error.log` sit in the root and must survive. Timer is `unref`'d so it cannot keep the process alive, and the purge promise is caught — an unhandled rejection inside a timer would kill the process. Started by `configureLogger` only when `opts.keep` is set; exposed as `logger.stopPurge`.
+- `startPurge(logdir, keep, prefix)` / `stopPurge()` — daily (`PURGE_INTERVAL`, 24h) cleanup of rotated logs via `purgeOldFiles`. Purges `<logdir>/<prefix>trace.old` and `<logdir>/<prefix>error.old`, filtered to `*.log`: with `keepFileExt` streamroller builds names as `<name>.<pattern>.<ext>`, so rotated files land in `<prefix>trace.old/…`, not in `<logdir>/old`. Active `trace.log`/`error.log` sit in the root of `<logdir>`, outside those folders, and so survive. Timer is `unref`'d so it cannot keep the process alive, and the purge promise is caught — an unhandled rejection inside a timer would kill the process. Started by `configureLogger` only when `opts.keep` is set; exposed as `logger.stopPurge`.
 - Signal / crash handlers are the consuming project's job — the library installs none. See `LOGGER-HOW-TO-USE.md`.
 - Internals exported with `_` prefix for testing: `_formatLog`, `_resetColors`, `_getTimeDifference`, `_startPurge`, `_stopPurge`.
 - Known issue: log4js does not recover after disk full — requires process restart.
-- Known issue: log4js's own retention (`numBackups`) is inert here — streamroller lists only the base file's directory, while the rotation pattern writes into `old/yyyy-MM/`. Hence the `keep` option.
+- Known issue: log4js's own retention (`numBackups`) is inert here — streamroller lists only the base file's directory, while the rotation pattern writes into `<prefix>trace.old/yyyy-MM/`. Hence the `keep` option.
 - See `LOGGER-HOW-TO-USE.md` for usage guidelines in other projects.
 
 **textify.js** - Object-to-string conversion for logging/debugging.
@@ -96,7 +96,7 @@ npx eslint .
 ### Supporting Modules
 - `validate.js` - date/time format validators (`isTime`, `isDate`, `isDateTime`)
 - `notify.js` - HTTP notification helper
-- `files.js` - file utilities (`purgeOldFiles`) — leaf module: requires `./timeframes` and `./arrays` directly, never the `./index` barrel (that was a require cycle)
+- `files.js` - file utilities (`purgeOldFiles(folder, older, opts)`) — leaf module: requires `./timeframes` and `./arrays` directly, never the `./index` barrel (that was a require cycle). `opts.ext` (string or array) restricts deletion to matching names, compared with `endsWith` so composites like `.log.gz` work; without it every file older than `older` goes, which is what external callers rely on. Does not create the folder it is pointed at — a missing folder yields `[]`.
 - `arrays.js` - adds `Array.prototype.forEachAsync`, exports `forEachAsyncFn`
 
 ## Code Style

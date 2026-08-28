@@ -77,7 +77,7 @@ function configureLogger(minlevel = 'silly', opts = {}) {
   console.warn = (...args) => logger.warn(...args);
   console.error = (...args) => logger.error(...args);
 
-  if (opts.keep) startPurge(logdir, opts.keep);
+  if (opts.keep) startPurge(logdir, opts.keep, prefix);
 
   logger.shutdown = shutdown;
   logger.exit = exit;
@@ -85,19 +85,28 @@ function configureLogger(minlevel = 'silly', opts = {}) {
   return logger;
 }
 // ==============================================
-// чистка ротированных логов раз в сутки. трогаем только <dir>/old:
-// в корне лежат активные trace.log/error.log, их удалять нельзя.
+// чистка ротированных логов раз в сутки.
+// streamroller с keepFileExt склеивает имя как <name>.<pattern>.<ext>,
+// поэтому ротированное лежит в <dir>/<prefix>trace.old/yyyy-MM/ и
+// <dir>/<prefix>error.old/, а не в <dir>/old. активные trace.log/error.log
+// лежат в корне <dir> и в эти папки не попадают — то есть переживают чистку.
+// фильтр по .log: в этих папках не должно быть ничего чужого, но каталог
+// задаёт вызывающий код, и цена ошибки — молча удалённые файлы
 // unref() — иначе таймер не даст процессу завершиться самому
 // ==============================================
-function startPurge(logdir, keep) {
+function startPurge(logdir, keep, prefix = '') {
   stopPurge();
+
+  const folders = [`${logdir}/${prefix}trace.old`, `${logdir}/${prefix}error.old`];
 
   purgeTimer = setInterval(() => {
     // ошибка внутри таймера никем не ловится и валит процесс целиком,
     // поэтому чистка логов не имеет права выбросить наружу
-    purgeOldFiles(`${logdir}/old`, keep)
-      .then((list) => { if (list.length) console.log(`[+] logs purged: ${list.length} items`); })
-      .catch((err) => console.warn(`[-] log purge failed: ${err.message}`));
+    folders.forEach((folder) => {
+      purgeOldFiles(folder, keep, { ext: '.log' })
+        .then((list) => { if (list.length) console.log(`[+] logs purged: ${list.length} items`); })
+        .catch((err) => console.warn(`[-] log purge failed: ${err.message}`));
+    });
   }, PURGE_INTERVAL);
 
   if (purgeTimer.unref) purgeTimer.unref();

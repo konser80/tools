@@ -131,3 +131,61 @@ describe('purgeOldFiles', () => {
   });
 
 });
+
+describe('purgeOldFiles with an extension filter', () => {
+
+  test('deletes only matching files', async () => {
+    const root = makeTree({ 'old.log': 40 * DAY, 'old.txt': 40 * DAY });
+    const res = await purgeOldFiles(root, '30d', { ext: '.log' });
+
+    expect(res).toEqual(['/old.log']);
+    expect(fs.existsSync(path.join(root, 'old.txt'))).toBe(true);
+  });
+
+  test('accepts a list of extensions', async () => {
+    const root = makeTree({ 'old.log': 40 * DAY, 'old.log.gz': 40 * DAY, 'old.txt': 40 * DAY });
+    const res = await purgeOldFiles(root, '30d', { ext: ['.log', '.log.gz'] });
+
+    expect(res).toEqual(expect.arrayContaining(['/old.log', '/old.log.gz']));
+    expect(fs.existsSync(path.join(root, 'old.txt'))).toBe(true);
+  });
+
+  test('matches the tail of the name, not path.extname', async () => {
+    const root = makeTree({ 'trace.log.gz': 40 * DAY });
+    await purgeOldFiles(root, '30d', { ext: '.log.gz' });
+
+    expect(fs.existsSync(path.join(root, 'trace.log.gz'))).toBe(false);
+  });
+
+  test('ignores case', async () => {
+    const root = makeTree({ 'OLD.LOG': 40 * DAY });
+    await purgeOldFiles(root, '30d', { ext: '.log' });
+
+    expect(fs.existsSync(path.join(root, 'OLD.LOG'))).toBe(false);
+  });
+
+  test('keeps a subfolder held by a non-matching file', async () => {
+    const root = makeTree({ 'old/2026-01/trace.log': 40 * DAY, 'old/2026-01/notes.txt': 40 * DAY });
+    await purgeOldFiles(root, '30d', { ext: '.log' });
+
+    expect(fs.existsSync(path.join(root, 'old/2026-01/trace.log'))).toBe(false);
+    expect(fs.existsSync(path.join(root, 'old/2026-01'))).toBe(true);
+  });
+
+  test('deletes everything when no filter is given', async () => {
+    const root = makeTree({ 'old.log': 40 * DAY, 'old.txt': 40 * DAY });
+    const res = await purgeOldFiles(root, '30d');
+
+    expect(res).toEqual(expect.arrayContaining(['/old.log', '/old.txt']));
+  });
+
+  test('does not create the folder it was pointed at', async () => {
+    const root = makeTree({});
+    const missing = path.join(root, 'nope');
+    const res = await purgeOldFiles(missing, '30d');
+
+    expect(res).toEqual([]);
+    expect(fs.existsSync(missing)).toBe(false);
+  });
+
+});

@@ -50,21 +50,21 @@ const exists = (dir, rel) => fs.existsSync(path.join(dir, rel));
 describe('startPurge', () => {
 
   test('удаляет старые ротированные логи через сутки', async () => {
-    const dir = makeLogdir({ 'old/2026-01/trace.log': 40 * DAY });
+    const dir = makeLogdir({ 'trace.old/2026-01/trace.log': 40 * DAY });
     startPurge(dir, '30d');
 
     await tickOneDay();
 
-    expect(exists(dir, 'old/2026-01/trace.log')).toBe(false);
+    expect(exists(dir, 'trace.old/2026-01/trace.log')).toBe(false);
   });
 
   test('не трогает свежие ротированные логи', async () => {
-    const dir = makeLogdir({ 'old/2026-08/trace.log': 2 * DAY });
+    const dir = makeLogdir({ 'trace.old/2026-08/trace.log': 2 * DAY });
     startPurge(dir, '30d');
 
     await tickOneDay();
 
-    expect(exists(dir, 'old/2026-08/trace.log')).toBe(true);
+    expect(exists(dir, 'trace.old/2026-08/trace.log')).toBe(true);
   });
 
   test('не трогает активные логи в корне папки', async () => {
@@ -78,30 +78,68 @@ describe('startPurge', () => {
   });
 
   test('ничего не удаляет до наступления суток', async () => {
-    const dir = makeLogdir({ 'old/2026-01/trace.log': 40 * DAY });
+    const dir = makeLogdir({ 'trace.old/2026-01/trace.log': 40 * DAY });
     startPurge(dir, '30d');
 
     jest.advanceTimersByTime(DAY - 1000);
     for (let i = 0; i < 50; i += 1) await new Promise((r) => setImmediate(r)); // eslint-disable-line no-await-in-loop
 
-    expect(exists(dir, 'old/2026-01/trace.log')).toBe(true);
+    expect(exists(dir, 'trace.old/2026-01/trace.log')).toBe(true);
   });
 
   test('чистит каждые сутки, а не один раз', async () => {
-    const dir = makeLogdir({ 'old/2026-01/first.log': 40 * DAY });
+    const dir = makeLogdir({ 'trace.old/2026-01/first.log': 40 * DAY });
     startPurge(dir, '30d');
 
     await tickOneDay();
-    expect(exists(dir, 'old/2026-01/first.log')).toBe(false);
+    expect(exists(dir, 'trace.old/2026-01/first.log')).toBe(false);
 
-    fs.mkdirSync(path.join(dir, 'old/2026-02'), { recursive: true });
-    const second = path.join(dir, 'old/2026-02/second.log');
+    fs.mkdirSync(path.join(dir, 'trace.old/2026-02'), { recursive: true });
+    const second = path.join(dir, 'trace.old/2026-02/second.log');
     fs.writeFileSync(second, 'x');
     const when = new Date(Date.now() - 40 * DAY);
     fs.utimesSync(second, when, when);
 
     await tickOneDay();
     expect(fs.existsSync(second)).toBe(false);
+  });
+
+  test('чистит и ротированные error-логи', async () => {
+    const dir = makeLogdir({ 'error.old/2026-01.log': 40 * DAY });
+    startPurge(dir, '30d');
+
+    await tickOneDay();
+
+    expect(exists(dir, 'error.old/2026-01.log')).toBe(false);
+  });
+
+  test('учитывает prefix в именах папок', async () => {
+    const dir = makeLogdir({ 'bot_trace.old/2026-01/x.log': 40 * DAY, 'trace.old/2026-01/x.log': 40 * DAY });
+    startPurge(dir, '30d', 'bot_');
+
+    await tickOneDay();
+
+    expect(exists(dir, 'bot_trace.old/2026-01/x.log')).toBe(false);
+    expect(exists(dir, 'trace.old/2026-01/x.log')).toBe(true);
+  });
+
+  test('не трогает не-.log файлы в папке ротации', async () => {
+    const dir = makeLogdir({ 'trace.old/2026-01/x.log': 40 * DAY, 'trace.old/2026-01/notes.txt': 40 * DAY });
+    startPurge(dir, '30d');
+
+    await tickOneDay();
+
+    expect(exists(dir, 'trace.old/2026-01/x.log')).toBe(false);
+    expect(exists(dir, 'trace.old/2026-01/notes.txt')).toBe(true);
+  });
+
+  test('не создаёт папок, пока ротации не было', async () => {
+    const dir = makeLogdir({});
+    startPurge(dir, '30d');
+
+    await tickOneDay();
+
+    expect(fs.readdirSync(dir)).toEqual([]);
   });
 
   test('повторный запуск не плодит таймеры', () => {
@@ -113,18 +151,58 @@ describe('startPurge', () => {
   });
 
   test('stopPurge останавливает чистку', async () => {
-    const dir = makeLogdir({ 'old/2026-01/trace.log': 40 * DAY });
+    const dir = makeLogdir({ 'trace.old/2026-01/trace.log': 40 * DAY });
     startPurge(dir, '30d');
     stopPurge();
 
     await tickOneDay();
 
     expect(jest.getTimerCount()).toBe(0);
-    expect(exists(dir, 'old/2026-01/trace.log')).toBe(true);
+    expect(exists(dir, 'trace.old/2026-01/trace.log')).toBe(true);
   });
 
   test('stopPurge без запущенной чистки не падает', () => {
     expect(() => stopPurge()).not.toThrow();
+  });
+
+});
+
+// ==============================================
+// страховка от того, ради чего чинился путь: startPurge ходит в
+// <dir>/<prefix>trace.old, и это должно совпадать с тем, как streamroller
+// на самом деле именует ротированные файлы. схему спрашиваем у неё самой
+// ==============================================
+describe('startPurge попадает в реальные папки ротации', () => {
+
+  // streamroller приходит транзитивно через log4js — прямой зависимости нет,
+  // но именно её схема именования тут и проверяется
+  // eslint-disable-next-line global-require, import/no-extraneous-dependencies
+  const fileNameFormatter = require('streamroller/lib/fileNameFormatter');
+
+  const rotatedName = (dir, base, datepart) => fileNameFormatter({
+    file: path.parse(path.join(dir, base)),
+    keepFileExt: true,
+    needsIndex: false,
+    alwaysIncludeDate: true,
+    compress: false,
+  })({ date: datepart, index: 0 });
+
+  test.each([
+    ['trace.log', 'old/2026-01/2026-01-05'],
+    ['error.log', 'old/2026-01'],
+  ])('удаляет ротированный %s', async (base, datepart) => {
+    const dir = makeLogdir({});
+    const rotated = rotatedName(dir, base, datepart);
+
+    fs.mkdirSync(path.dirname(rotated), { recursive: true });
+    fs.writeFileSync(rotated, 'x');
+    const when = new Date(Date.now() - 40 * DAY);
+    fs.utimesSync(rotated, when, when);
+
+    startPurge(dir, '30d');
+    await tickOneDay();
+
+    expect(fs.existsSync(rotated)).toBe(false);
   });
 
 });
@@ -137,8 +215,8 @@ describe('configureLogger с keep', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'purge-child-'));
     const script = path.join(dir, 'child.js');
 
-    fs.mkdirSync(path.join(dir, 'logs/old/2026-01'), { recursive: true });
-    const stale = path.join(dir, 'logs/old/2026-01/trace.log');
+    fs.mkdirSync(path.join(dir, 'logs/trace.old/2026-01'), { recursive: true });
+    const stale = path.join(dir, 'logs/trace.old/2026-01/trace.log');
     fs.writeFileSync(stale, 'x');
     const when = new Date(Date.now() - 40 * DAY);
     fs.utimesSync(stale, when, when);

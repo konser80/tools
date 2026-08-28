@@ -5,7 +5,11 @@ const { tftotime } = require('./timeframes');
 const { forEachAsyncFn } = require('./arrays');
 
 // ==============================================
-async function removeOldFiles(folder, older) {
+// opts.ext — строка или массив расширений ('.log', ['.log', '.log.gz']).
+// без него удаляем всё подряд: функция публичная, снаружи её зовут
+// не только для логов
+// ==============================================
+async function removeOldFiles(folder, older, opts = {}) {
   if (!folder) return false;
   if (!older) return false;
 
@@ -14,16 +18,31 @@ async function removeOldFiles(folder, older) {
   const diff = tftotime(older || '30d');
   const earlier = now - diff;
 
-  try {
-    await fs.mkdir(folder, { recursive: true });
-  }
-  catch {}
-
-  const res = await removeRecursive(earlier, folder);
+  const res = await removeRecursive(earlier, folder, '', extList(opts.ext));
   return res;
 }
 // ==============================================
-async function removeRecursive(earlier, folder, sub = '') {
+function extList(ext) {
+  if (!ext) return null;
+
+  const list = (Array.isArray(ext) ? ext : [ext])
+    .filter(Boolean)
+    .map((s) => s.toString().toLowerCase());
+
+  return list.length ? list : null;
+}
+// ==============================================
+// сравниваем хвост имени, а не path.extname: иначе не поймать
+// составные расширения вроде .log.gz
+// ==============================================
+function extMatch(fname, exts) {
+  if (!exts) return true;
+
+  const name = fname.toLowerCase();
+  return exts.some((ext) => name.endsWith(ext));
+}
+// ==============================================
+async function removeRecursive(earlier, folder, sub = '', exts = null) {
 
   let flist = [];
   const newRoot = path.join(folder, sub);
@@ -35,7 +54,7 @@ async function removeRecursive(earlier, folder, sub = '') {
       // this is a folder
       if (!stat.isFile()) {
         const newSub = `${sub}/${fname}`;
-        const sublist = await removeRecursive(earlier, folder, newSub);
+        const sublist = await removeRecursive(earlier, folder, newSub, exts);
         flist = flist.concat(sublist);
 
         const remdir = await removeEmptyFolder(folder, newSub);
@@ -43,6 +62,7 @@ async function removeRecursive(earlier, folder, sub = '') {
         return true;
       }
 
+      if (!extMatch(fname, exts)) return false;
       if (stat.mtimeMs > earlier) return false;
 
       // console.debug(`[+] delete file ${sub}/${fname}`, { ms: false });
@@ -51,7 +71,8 @@ async function removeRecursive(earlier, folder, sub = '') {
     });
   }
   catch (err) {
-    if (err.code === 'ENOENT') return true;
+    // папки может не быть — ротация ещё не случилась, это не ошибка
+    if (err.code === 'ENOENT') return flist;
     console.error(`[-] purgeOldFiles: ${err.message}`, { err });
   }
   return flist;
@@ -68,6 +89,7 @@ async function removeEmptyFolder(folder, sub) {
   }
   catch (err) {
     console.error(`[-] ${err.message}`, { err });
+    return null;
   }
   return sub;
 }
