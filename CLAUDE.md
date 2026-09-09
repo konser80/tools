@@ -53,7 +53,7 @@ npx eslint .
 **timeframes.js** - Bidirectional conversion between human-readable timeframe strings and milliseconds. Dependency: dayjs.
 - `tftotime(s, fromDate?)` — parses `"15s"`, `"10m"`, `"24h"`, `"7d"`, `"1y"`, combined `"2h3m10s"`. Unknown/missing-unit substrings are silently ignored — a bare number-only string like `"2"` matches no unit and returns `0`. A JS `number` input is returned as-is (treated as already-milliseconds, not seconds).
 - `timetotf(diff)` — ms to compact single-unit string (`"Xms"`, `"Xs"`, `"Xm"`, `"Xh"`, `"Xd"`). Threshold for hours→days is `4*DAY`.
-- `timetotf2(diff)` — ms to verbose multi-unit string (`"2y5d3h15m20s"`).
+- `timetotf2(diff, units = 2)` — ms to verbose multi-unit string. Keeps only the `units` largest non-empty units (`"2y5d"`); zeros are skipped, not counted, so `1y0d3h` renders as `"1y3h"`. `units = 0` (or `Infinity`) returns the full string (`"2y5d3h15m20s"`). The `ms` / `0ms` fallbacks are unaffected. Used by `replace.js` for the `.after.timeframe` suffix, which inherits the 2-unit default.
 - Units: `s`, `m`, `h`, `d` use constant multiplication; `w`, `M` (uppercase), `y` use dayjs calendar arithmetic.
 - Implementation detail: module-level `REGEX_TF` with `/g` flag — `lastIndex` reset before each call.
 

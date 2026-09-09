@@ -59,25 +59,28 @@ function timetoTimeFrame(diff) {
   return `${(diff / DAY).toFixed(1)}d`;
 }
 // ==============================================
-function timetoTimeFrame2(diff) {
+// units: how many non-empty units to keep, 0 or Infinity = all of them
+function timetoTimeFrame2(diff, units = 2) {
 
-  let accumulated = '';
+  let parts = [];
   let remaining = diff;
 
-  ({ accumulated, remaining } = calcTimeDiff(YEAR, 'y', remaining, accumulated));
-  ({ accumulated, remaining } = calcTimeDiff(DAY, 'd', remaining, accumulated));
-  ({ accumulated, remaining } = calcTimeDiff(HOUR, 'h', remaining, accumulated));
-  ({ accumulated, remaining } = calcTimeDiff(MIN, 'm', remaining, accumulated));
-  ({ accumulated, remaining } = calcTimeDiff(SEC, 's', remaining, accumulated));
-  if (accumulated === '') ({ accumulated } = calcTimeDiff(1, 'ms', remaining, accumulated));
-  if (accumulated === '') accumulated = '0ms';
-  return accumulated;
+  ({ parts, remaining } = calcTimeDiff(YEAR, 'y', remaining, parts));
+  ({ parts, remaining } = calcTimeDiff(DAY, 'd', remaining, parts));
+  ({ parts, remaining } = calcTimeDiff(HOUR, 'h', remaining, parts));
+  ({ parts, remaining } = calcTimeDiff(MIN, 'm', remaining, parts));
+  ({ parts, remaining } = calcTimeDiff(SEC, 's', remaining, parts));
+  if (!parts.length) ({ parts } = calcTimeDiff(1, 'ms', remaining, parts));
+  if (!parts.length) return '0ms';
+
+  const limit = (units > 0) ? units : parts.length;
+  return parts.slice(0, limit).join('');
 }
 // ==============================================
-function calcTimeDiff(unit, suffix, remaining, accumulated) {
+function calcTimeDiff(unit, suffix, remaining, parts) {
   const count = Math.floor(remaining / unit);
   return {
-    accumulated: count > 0 ? `${accumulated}${count}${suffix}` : accumulated,
+    parts: count > 0 ? [...parts, `${count}${suffix}`] : parts,
     remaining: remaining - count * unit,
   };
 }

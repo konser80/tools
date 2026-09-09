@@ -88,8 +88,8 @@ describe('timetotf2', () => {
   test('hours',         () => expect(timetotf2(HOUR)).toBe('1h'));
   test('days',          () => expect(timetotf2(DAY)).toBe('1d'));
 
-  test('combined: 2h3m10s', () => {
-    expect(timetotf2(2*HOUR + 3*MIN + 10*SEC)).toBe('2h3m10s');
+  test('combined: 2h3m10s -> 2 units', () => {
+    expect(timetotf2(2*HOUR + 3*MIN + 10*SEC)).toBe('2h3m');
   });
   test('combined: 1d12h', () => {
     expect(timetotf2(DAY + 12*HOUR)).toBe('1d12h');
@@ -98,6 +98,24 @@ describe('timetotf2', () => {
   test('years output', () => {
     const YEAR = 365.25 * DAY;
     expect(timetotf2(YEAR)).toBe('1y');
+  });
+
+  describe('units parameter', () => {
+
+    const FULL = 2*DAY + 3*HOUR + 15*MIN + 20*SEC;
+
+    test('default keeps 2 units',   () => expect(timetotf2(FULL)).toBe('2d3h'));
+    test('units = 1',               () => expect(timetotf2(FULL, 1)).toBe('2d'));
+    test('units = 3',               () => expect(timetotf2(FULL, 3)).toBe('2d3h15m'));
+    test('units = 0 shows all',     () => expect(timetotf2(FULL, 0)).toBe('2d3h15m20s'));
+    test('units above available',   () => expect(timetotf2(FULL, 10)).toBe('2d3h15m20s'));
+    test('Infinity shows all',      () => expect(timetotf2(FULL, Infinity)).toBe('2d3h15m20s'));
+
+    test('counts non-empty units over gaps', () => {
+      expect(timetotf2(DAY + 15*MIN + 20*SEC)).toBe('1d15m');
+    });
+    test('milliseconds ignore units', () => expect(timetotf2(500, 1)).toBe('500ms'));
+    test('zero ignores units',        () => expect(timetotf2(0, 0)).toBe('0ms'));
   });
 });
 
@@ -109,4 +127,5 @@ describe('round-trip: tftotime → timetotf2', () => {
   test('2h3m',  () => expect(timetotf2(tftotime('2h3m'))).toBe('2h3m'));
   test('1d12h', () => expect(timetotf2(tftotime('1d12h'))).toBe('1d12h'));
   test('45s',   () => expect(timetotf2(tftotime('45s'))).toBe('45s'));
+  test('2h3m10s, full', () => expect(timetotf2(tftotime('2h3m10s'), 0)).toBe('2h3m10s'));
 });
