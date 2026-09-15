@@ -234,6 +234,33 @@ describe('Suffix operations (toLowerCase, asKMB, length, asNumber)', () => {
     expect(replace(obj, '_{products.John.min.asKMB}_')).toEqual('_3K_');
   });
 
+  test('asKMB rounds up into the next unit instead of 1000K', () => {
+    const kmb = (n) => replace({ n }, '{n.asKMB}');
+    expect(kmb(999.5)).toEqual('1K');
+    expect(kmb(999_499)).toEqual('999K');
+    expect(kmb(999_500)).toEqual('1M');
+    expect(kmb(999_999)).toEqual('1M');
+    expect(kmb(999_500_000)).toEqual('1B');
+    expect(kmb(9_960)).toEqual('10K');
+  });
+
+  test('asKMB uses T for trillions', () => {
+    const kmb = (n) => replace({ n }, '{n.asKMB}');
+    expect(kmb(999_500_000_000)).toEqual('1T');
+    expect(kmb(1_200_000_000_000)).toEqual('1.2T');
+    expect(kmb(15_000_000_000_000)).toEqual('15T');
+    expect(kmb(-2_500_000_000_000)).toEqual('-2.5T');
+    expect(kmb(5_000_000_000_000_000)).toEqual('5000T');
+  });
+
+  test('asKMB treats negatives symmetrically', () => {
+    const kmb = (n) => replace({ n }, '{n.asKMB}');
+    expect(kmb(-5_500)).toEqual('-5.5K');
+    expect(kmb(-12_500)).toEqual('-13K');
+    expect(kmb(-999_500)).toEqual('-1M');
+    expect(kmb(-999.5)).toEqual('-1K');
+  });
+
   test('length', () => {
     expect(replace(obj, '_{user.hobbies.length}_')).toEqual('_3_');
     expect(replace(obj, '_{products.John.title.length}_')).toEqual('_11_');

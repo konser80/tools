@@ -70,7 +70,7 @@ npx eslint .
 - Nested placeholders: `{products.{user.name}.title}`
 - Boolean prefixes: `{!path}` (negation), `{!!path}` (truthy coercion)
 - Regex extraction: `{/regex/path}` - extracts capture group from value
-- Suffixes: `.toLowerCase`, `.toUpperCase`, `.asNumber`, `.asKMB`, `.after.days`, `.before.hours`, `.after.spell.ru`, `.before.spell.en` (human-readable time diff)
+- Suffixes: `.toLowerCase`, `.toUpperCase`, `.asNumber`, `.asKMB` (decimal K/M/B/T; rounds up into the next unit, so `999500` → `1M`), `.after.days`, `.before.hours`, `.after.spell.ru`, `.before.spell.en` (human-readable time diff)
 - Random: `{rnd.9}` generates 0-9, `{rnd.09}` generates 00-09
 
 **jparse.js** - Extended JSON.parse that handles:

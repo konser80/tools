@@ -12,6 +12,13 @@ const REGEX_DEEP_PLACEHOLDER = /^\{(?<bool>!{1,2})?(?<sub>\/.*?\/)?(?<path>[a-z–
 const REGEX_RND = /^rnd\.(\d+)$/;
 const REGEX_ASNUMBER = /^(?<path>.+)\.asNumber$/;
 const REGEX_ASKMB = /^(?<path>.+)\.asKMB$/;
+const KMB_UNITS = [
+  { div: 1, suffix: '' },
+  { div: 1_000, suffix: 'K' },
+  { div: 1_000_000, suffix: 'M' },
+  { div: 1_000_000_000, suffix: 'B' },
+  { div: 1_000_000_000_000, suffix: 'T' },
+];
 const REGEX_LOWERCASE = /^(?<path>.+)\.toLowerCase$/;
 const REGEX_UPPERCASE = /^(?<path>.+)\.toUpperCase$/;
 const REGEX_GROUP = /\[([^[]+?\|[^[]+?)\]/;
@@ -430,26 +437,21 @@ function sfxAsKMB(obj, fullpath, value) {
   const num = Number(myValue);
   if (Number.isNaN(num)) return '';
 
-  let formatted;
-  let res;
-  if (Math.abs(num) >= 1_000_000_000) {
-    formatted = num / 1_000_000_000;
-    const fixed = formatted < 10 ? formatted.toFixed(1) : Math.round(formatted);
-    res = `${+fixed}B`;
+  // work on the absolute value so negatives round the same way as positives
+  const abs = Math.abs(num);
+  const round = (x, i) => (i > 0 && x < 10 ? +x.toFixed(1) : Math.round(x));
+
+  let i = KMB_UNITS.length - 1;
+  while (i > 0 && abs < KMB_UNITS[i].div) i -= 1;
+  let rounded = round(abs / KMB_UNITS[i].div, i);
+  // 999_500 rounds to 1000K ‚Äî promote to 1M
+  if (rounded >= 1000 && i < KMB_UNITS.length - 1) {
+    i += 1;
+    rounded = round(abs / KMB_UNITS[i].div, i);
   }
-  else if (Math.abs(num) >= 1_000_000) {
-    formatted = num / 1_000_000;
-    const fixed = formatted < 10 ? formatted.toFixed(1) : Math.round(formatted);
-    res = `${+fixed}M`;
-  }
-  else if (Math.abs(num) >= 1_000) {
-    formatted = num / 1_000;
-    const fixed = formatted < 10 ? formatted.toFixed(1) : Math.round(formatted);
-    res = `${+fixed}K`;
-  }
-  else {
-    res = String(Math.round(num));
-  }
+
+  const sign = num < 0 && rounded !== 0 ? '-' : '';
+  const res = `${sign}${rounded}${KMB_UNITS[i].suffix}`;
 
   if (DEBUG) console.log(`sfxAsKMB() => ${res}`);
   return res;
