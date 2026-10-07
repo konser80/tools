@@ -6,11 +6,11 @@ const HOUR = 60*MIN;
 const DAY = 24*HOUR;
 const YEAR = 365.25*DAY;
 
-const REGEX_TF = /(\d+(\.\d+)?[smhdwMy])/g;
+const REGEX_TF = /(\d+(\.\d+)?(ms|[smhdwMy]))/g;
 
 // ==============================================
 // convert strings to unix time
-// 15s, 10m, 24h, 7d, 1y, 1.750s & strings like: 2h3m10s
+// 500ms, 15s, 10m, 24h, 7d, 1y, 1.750s & strings like: 2h3m10s
 function timeframeToUnixTime(s, fromDate = dayjs()) {
   if (!s) return 0;
   if (typeof s === 'number') return s;
@@ -29,7 +29,8 @@ function timeframeToUnixTime(s, fromDate = dayjs()) {
 function decodeTimeframe(string, fromDate) {
   const value = parseFloat(string.replace(/[^0-9.]/g, '')) || 0;
 
-  if (string.indexOf('s') !== -1) return value * SEC;
+  if (string.indexOf('ms') !== -1) return value; // before 's': '50ms' contains both
+  else if (string.indexOf('s') !== -1) return value * SEC;
   else if (string.indexOf('m') !== -1) return value * MIN;
   else if (string.indexOf('h') !== -1) return value * HOUR;
   else if (string.indexOf('d') !== -1) return value * DAY;
