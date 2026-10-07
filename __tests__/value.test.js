@@ -1,4 +1,4 @@
-const { val } = require('../index');
+const { val, replace } = require('../index');
 
 describe('null / undefined', () => {
 
@@ -224,6 +224,26 @@ describe('default value fallback', () => {
 
   test('numeric string with spaces trimmed and parsed', () => {
     expect(val('  99  ')).toBe(99);
+  });
+
+});
+
+describe('val over replace output', () => {
+
+  test('unresolved placeholder on empty object gives empty string', () => {
+    expect(val(replace({}, '{somepath.somevalue}'))).toBe('');
+  });
+
+  test('unresolved placeholder ignores default (empty string is not null)', () => {
+    expect(val(replace({}, '{somepath.somevalue}'), 10)).toBe('');
+  });
+
+  test('resolved numeric placeholder is parsed to number', () => {
+    expect(val(replace({ somepath: { somevalue: 42 } }, '{somepath.somevalue}'))).toBe(42);
+  });
+
+  test('resolved boolean placeholder is parsed to boolean', () => {
+    expect(val(replace({ somepath: { somevalue: true } }, '{somepath.somevalue}'))).toBe(true);
   });
 
 });
